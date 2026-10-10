@@ -1,6 +1,6 @@
 # kRecord
 
-Native macOS meeting recorder (microphone + system audio). Planning lives in OpenSpec: `openspec/changes/add-core-recording/` (proposal, design, specs, tasks). Read `design.md` before touching audio code: its decisions record spike and hardware findings that are easy to undo by accident (keep-alive output, voice-processing start order, buffer index computation, 38.7 ms latency constant).
+Native macOS meeting recorder (microphone + system audio). Planning lives in OpenSpec: the current behavior contract is in `openspec/specs/`, and the first change with its design is archived in `openspec/changes/archive/2026-10-10-add-core-recording/`. Read that `design.md` before touching audio code: its decisions record spike and hardware findings that are easy to undo by accident (keep-alive output, voice-processing start order, buffer index computation, 38.7 ms latency constant).
 
 ## Build and test
 
