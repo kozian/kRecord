@@ -9,7 +9,7 @@ enum RecordingError: Error, Equatable, Sendable {
     case diskFull
     case captureFailed
     case writeFailed
-    /// Recording finished but the final file could not be produced; the intermediates are kept.
+    /// The recording could not be repackaged as `.m4a`; the `.aac` file is kept.
     case saveFailed
 
     var message: String {
@@ -27,7 +27,7 @@ enum RecordingError: Error, Equatable, Sendable {
         case .writeFailed:
             String(localized: "Recording stopped because the audio couldn't be written to disk.")
         case .saveFailed:
-            String(localized: "The recording couldn't be saved. The unprocessed audio was kept in the destination folder.")
+            String(localized: "The recording couldn't be saved as m4a. It was kept as an .aac file in the destination folder.")
         }
     }
 
@@ -38,6 +38,13 @@ enum RecordingError: Error, Equatable, Sendable {
         case .diskFull: self = .diskFull
         }
     }
+}
+
+/// The outcome of a saved recording.
+struct FinalizationResult: Equatable, Sendable {
+    var outputs: [URL]
+    /// System audio was captured but is entirely digital zero (permissions spec hint).
+    var systemAudioSilent: Bool
 }
 
 /// Time source of a session; injected so tests control elapsed time.
@@ -97,8 +104,6 @@ final class RecordingSession {
         let engine: any CaptureEngine
         let writer: any RecordingWriter
         let streams: CaptureStreams
-        let intermediates: IntermediateFiles
-        let baseName: String
         let startUptime: TimeInterval
         var tasks: [Task<Void, Never>] = []
     }
@@ -149,20 +154,12 @@ final class RecordingSession {
             return
         }
         let startUptime = dependencies.clock.uptime()
-        let baseName = FileNaming.baseName(for: dependencies.clock.date())
-
-        let roles: [FileNaming.Role] = [streams.microphone.map { _ in .recordingMicrophone },
-                                        streams.system.map { _ in .recordingSystem }].compactMap { $0 }
-        let urls = FileNaming.uniqueURLs(in: settings.destinationFolder, base: baseName, roles: roles,
-                                         fileExtension: FileNaming.intermediateExtension)
-        let intermediates = IntermediateFiles(
-            microphone: roles.firstIndex(of: .recordingMicrophone).map { urls[$0] },
-            system: roles.firstIndex(of: .recordingSystem).map { urls[$0] })
+        let plan = Self.writerPlan(for: streams, settings: settings, date: dependencies.clock.date())
 
         let writer = dependencies.makeWriter()
         let failures = writer.failures()
         do {
-            try await writer.start(streams: streams, files: intermediates)
+            try await writer.start(streams: streams, plan: plan)
         } catch {
             await engine.stop()
             fail(.writeFailed)
@@ -170,7 +167,7 @@ final class RecordingSession {
         }
 
         var recording = ActiveRecording(settings: settings, engine: engine, writer: writer, streams: streams,
-                                        intermediates: intermediates, baseName: baseName, startUptime: startUptime)
+                                        startUptime: startUptime)
         recording.tasks = watch(events: events, failures: failures,
                                 storage: dependencies.storage.monitor(settings.destinationFolder))
         active = recording
@@ -200,25 +197,41 @@ final class RecordingSession {
 
         await recording.engine.stop()
         do {
-            _ = try await recording.writer.finish()
+            let written = try await recording.writer.finish()
+            let outputs: [URL]
+            do {
+                outputs = try await dependencies.finalizer.finalize(
+                    FinalizationRequest(streams: written.streams, saveAsM4A: recording.settings.saveAsM4A))
+            } catch {
+                // The `.aac` streams are kept; a storage error already explains why saving failed.
+                if lastError == nil { lastError = .saveFailed }
+                outputs = written.streams.map(\.url)
+            }
+            lastResult = FinalizationResult(outputs: outputs, systemAudioSilent: written.systemAudioSilent)
         } catch {
+            // Whatever was written stays in the `.aac` file(s).
             if lastError == nil { lastError = .writeFailed }
-        }
-
-        do {
-            lastResult = try await dependencies.finalizer.finalize(FinalizationRequest(
-                intermediates: recording.intermediates, baseName: recording.baseName,
-                destination: recording.settings.destinationFolder, format: recording.settings.format,
-                separateFiles: recording.settings.separateFiles))
-        } catch {
-            // A storage error already explains why saving failed.
-            if lastError == nil { lastError = .saveFailed }
         }
 
         active = nil
         elapsedSeconds = 0
         levels = .silence
         state = .idle
+    }
+
+    /// Final names for this recording's `.aac` streams; free with both `.aac` and `.m4a` extensions.
+    static func writerPlan(for streams: CaptureStreams, settings: RecordingSettings, date: Date) -> WriterPlan {
+        let folder = settings.destinationFolder
+        let roles: [FileNaming.Role] = settings.separateFiles
+            ? [streams.microphone.map { _ in .microphone }, streams.system.map { _ in .system }].compactMap { $0 }
+            : [.mixed]
+        let base = FileNaming.availableBase(in: folder, base: FileNaming.baseName(for: date), roles: roles)
+        func url(_ role: FileNaming.Role) -> URL {
+            folder.appending(path: FileNaming.fileName(base: base, role: role, fileExtension: AACEncoding.streamExtension))
+        }
+        guard settings.separateFiles else { return .mixed(url(.mixed)) }
+        return .separate(microphone: streams.microphone.map { _ in url(.microphone) },
+                         system: streams.system.map { _ in url(.system) })
     }
 
     private func fail(_ error: RecordingError) {

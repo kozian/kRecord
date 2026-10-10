@@ -55,13 +55,13 @@ struct StorageGuardTests {
     }
 
     @Test func lowFreeSpaceBlocksStart() {
-        let guardian = FileSystemStorageGuard(capacity: { _ in 499_999_999 })
+        let guardian = FileSystemStorageGuard(capacity: { _ in 99_999_999 })
         #expect(throws: StorageError.diskFull) { try guardian.prepare(root) }
     }
 
     @Test func checkReportsDiskFullBelowReserve() {
-        #expect(FileSystemStorageGuard(capacity: { _ in 500_000_000 }).check(root) == nil)
-        #expect(FileSystemStorageGuard(capacity: { _ in 499_999_999 }).check(root) == .diskFull)
+        #expect(FileSystemStorageGuard(capacity: { _ in 100_000_000 }).check(root) == nil)
+        #expect(FileSystemStorageGuard(capacity: { _ in 99_999_999 }).check(root) == .diskFull)
         #expect(FileSystemStorageGuard(capacity: { _ in nil }).check(root) == nil)
     }
 
@@ -82,7 +82,7 @@ struct StorageGuardTests {
         let stream = guardian.monitor(root)
         Task {
             try? await Task.sleep(for: .milliseconds(100))
-            available.bytes.store(100_000_000, ordering: .relaxed)
+            available.bytes.store(50_000_000, ordering: .relaxed)
         }
         var problems: [StorageError] = []
         for await problem in stream { problems.append(problem) }

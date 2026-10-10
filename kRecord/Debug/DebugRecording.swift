@@ -6,10 +6,10 @@ import Foundation
 /// Headless end-to-end recording for manual verification over SSH (DEBUG builds only).
 ///
 ///     open kRecord.app --args -KRDebugRecord 60 [-KRDebugSources all|mic|system]
-///         [-KRDebugFormat aac|alac|wav] [-KRDebugSeparate YES] [-KRDebugEchoCancellation YES]
+///         [-KRDebugSaveAsM4A NO] [-KRDebugSeparate YES] [-KRDebugEchoCancellation YES]
 ///
-/// Records to `~/Music/kRecord/` through the production capture, writer, and finalizer, logs to
-/// `~/Music/kRecord/debug-recording.log`, and quits.
+/// Records to `~/Music/kRecord/` through `RecordingSession` with the production capture, writer,
+/// and finalizer, logs to `~/Music/kRecord/debug-recording.log`, and quits.
 enum DebugRecording {
     static func runIfRequested() {
         let defaults = UserDefaults.standard
@@ -20,59 +20,51 @@ enum DebugRecording {
         case "system": .system
         default: .all
         }
-        let format = defaults.string(forKey: "KRDebugFormat").flatMap(OutputFormat.init(rawValue:)) ?? .aac
-        let separate = defaults.bool(forKey: "KRDebugSeparate")
-        let echoCancellation = defaults.bool(forKey: "KRDebugEchoCancellation")
+        var settings = RecordingSettings.defaults
+        settings.saveAsM4A = defaults.object(forKey: "KRDebugSaveAsM4A") == nil || defaults.bool(forKey: "KRDebugSaveAsM4A")
+        settings.separateFiles = defaults.bool(forKey: "KRDebugSeparate")
+        settings.echoCancellation = defaults.bool(forKey: "KRDebugEchoCancellation")
+        let snapshot = settings
 
-        Task.detached {
-            let folder = HomeDirectory.defaultRecordingsFolder
-            let log = DebugLog(url: folder.appending(path: "debug-recording.log"))
-            do {
-                try FileSystemStorageGuard().prepare(folder)
-                log.write("start: seconds=\(seconds) sources=\(sources.rawValue) format=\(format) separate=\(separate) echoCancellation=\(echoCancellation)")
-                if sources.contains(.microphone) {
-                    log.write("microphone permission: \(await AVCaptureDevice.requestAccess(for: .audio))")
-                }
+        Task { @MainActor in
+            let log = DebugLog(url: snapshot.destinationFolder.appending(path: "debug-recording.log"))
+            log.write("start: seconds=\(seconds) sources=\(sources.rawValue) saveAsM4A=\(snapshot.saveAsM4A) " +
+                      "separate=\(snapshot.separateFiles) echoCancellation=\(snapshot.echoCancellation)")
+            if sources.contains(.microphone) {
+                log.write("microphone permission: \(await AVCaptureDevice.requestAccess(for: .audio))")
+            }
+            let session = RecordingSession(dependencies: RecordingSession.Dependencies(
+                settings: { snapshot },
+                permittedSources: { sources },
+                makeEngine: { $0 ? VoiceProcessingCaptureEngine() as any CaptureEngine : AggregateCaptureEngine() },
+                makeWriter: { AACRecordingWriter() },
+                finalizer: AudioFinalizer(),
+                storage: FileSystemStorageGuard()))
 
-                let engine: any CaptureEngine = echoCancellation
-                    ? VoiceProcessingCaptureEngine() : AggregateCaptureEngine()
-                let events = engine.events()
-                Task { for await event in events { log.write("event: \(event)") } }
-                let started = Date()
-                let streams = try await engine.start(CaptureConfiguration(inputDeviceUID: nil, sources: sources))
-                log.write("capture started: rate=\(streams.sampleRate) mic=\(streams.microphone != nil) system=\(streams.system != nil)")
-
-                let base = FileNaming.baseName(for: started)
-                let files = IntermediateFiles(
-                    microphone: streams.microphone.map { _ in
-                        folder.appending(path: FileNaming.fileName(base: base, role: .recordingMicrophone, fileExtension: "caf"))
-                    },
-                    system: streams.system.map { _ in
-                        folder.appending(path: FileNaming.fileName(base: base, role: .recordingSystem, fileExtension: "caf"))
-                    })
-                let writer = CAFRecordingWriter()
-                try await writer.start(streams: streams, files: files)
-
-                for second in 1...seconds {
-                    try await Task.sleep(for: .seconds(1))
-                    if second % 5 == 0 || second == seconds {
-                        let levels = streams.levels.take()
-                        log.write(String(format: "t=%ds mic peak %.3f system peak %.3f", second,
-                                         levels.microphone.peak, levels.system.peak))
+            await session.start()
+            log.write("state after start: \(session.state) error: \(String(describing: session.lastError))")
+            if session.state == .recording {
+                var micPeak: Float = 0
+                var systemPeak: Float = 0
+                for tick in 1...(seconds * 10) {
+                    try? await Task.sleep(for: .milliseconds(100))
+                    micPeak = max(micPeak, session.levels.microphone.peak)
+                    systemPeak = max(systemPeak, session.levels.system.peak)
+                    if tick % 50 == 0 || tick == seconds * 10 {
+                        log.write(String(format: "t=%@ mic peak %.3f system peak %.3f",
+                                         session.formattedElapsedTime, micPeak, systemPeak))
+                        micPeak = 0
+                        systemPeak = 0
                     }
                 }
-
-                await engine.stop()
-                let frames = try await writer.finish()
-                log.write("captured frames: mic=\(frames.microphone) system=\(frames.system) " +
-                          "(\(Double(max(frames.microphone, frames.system)) / streams.sampleRate) s)")
-                let result = try await AudioFinalizer().finalize(FinalizationRequest(
-                    intermediates: files, baseName: base, destination: folder, format: format, separateFiles: separate))
-                log.write("saved: \(result.outputs.map(\.lastPathComponent)) systemAudioSilent=\(result.systemAudioSilent)")
-            } catch {
-                log.write("ERROR: \(error)")
+                let stopping = Date()
+                await session.stop()
+                let outputs = session.lastResult?.outputs.map(\.lastPathComponent) ?? []
+                log.write(String(format: "saved in %.2f s: ", Date().timeIntervalSince(stopping)) +
+                          "\(outputs) systemAudioSilent=\(String(describing: session.lastResult?.systemAudioSilent)) " +
+                          "error=\(String(describing: session.lastError))")
             }
-            await MainActor.run { NSApplication.shared.terminate(nil) }
+            NSApplication.shared.terminate(nil)
         }
     }
 }
@@ -85,7 +77,6 @@ private final class DebugLog: Sendable {
     }
 
     func write(_ message: String) {
-        NSLog("[debug-recording] %@", message)
         let data = Data("\(Date().formatted(.iso8601)) \(message)\n".utf8)
         if let handle = try? FileHandle(forWritingTo: url) {
             _ = try? handle.seekToEnd()

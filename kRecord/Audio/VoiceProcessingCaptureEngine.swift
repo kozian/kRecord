@@ -33,7 +33,7 @@ actor VoiceProcessingCaptureEngine: CaptureEngine {
         // Voice processing reconfigures the output device when it starts. Starting it before the
         // system capture keeps that reconfiguration from disturbing the running aggregate.
         let captureSystem = configuration.sources.contains(.system)
-        let rate = OutputFormat.sampleRate
+        let rate = AACEncoding.sampleRate
         let ring = RingBuffer(channels: CaptureStreams.microphoneChannels,
                               capacityFrames: Int(rate * AggregateCaptureEngine.ringSeconds))
         let path = VoiceMicrophonePath(ring: ring, alignsToSystem: captureSystem, sampleRate: rate)

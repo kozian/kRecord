@@ -43,8 +43,13 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 
 ## Recording output
 
-- [ ] **Disk full.** Create a small disk image (Disk Utility → New Image, 1 GB), mount it, set it as the destination folder, and fill it with a large file until about 600 MB are free. Record: within about 10 s after free space drops below 500 MB the recording stops, an error says disk space ran out, and the audio recorded so far is saved (as final file(s) or intermediate `(recording …).caf` files) on the image.
+- [ ] **Disk full.** Create a small disk image (Disk Utility → New Image, 300 MB), mount it, set it as the destination folder, and fill it with a large file until about 110 MB are free. Record (with a few apps playing audio, it takes a while at about 1 MB per minute; copying more files onto the image speeds it up): within about 10 s after free space drops below 100 MB the recording stops, an error says disk space ran out, and the audio recorded so far is saved as `.m4a` or, if that fails, kept as `.aac`.
 - [ ] **External drive ejected.** Set a folder on a USB drive as the destination, start recording, and eject the drive in Finder (force-eject if needed). The recording stops within about 5 s with an error that the folder is unavailable; the app keeps working and the next recording to an available folder succeeds.
+- [ ] **Default output.** Record 30 s with default settings: one `kRecord <date> <time>.m4a` file appears, no `.aac` is left, saving takes well under a second, and QuickTime shows the correct duration.
+- [ ] **Save as m4a off.** Turn off "Save as m4a" and record: a `.aac` file is saved and plays in QuickTime and Music (players may show an approximate duration for `.aac`).
+- [ ] **Separate files.** With separate files on, record with "Save as m4a" on and then off: `(mic)` and `(system)` files appear with the matching extension; the microphone file is mono and the system file stereo; they line up when placed at the same position in an audio editor.
+- [ ] **Name collision.** Make two recordings within the same second (start, stop, start again immediately; or rename an existing file to the next recording's name): the new file gets a ` 2` suffix and the existing file is unchanged.
+- [ ] **Crash safety.** Start a recording, wait 1 minute, and force-quit kRecord (Activity Monitor → Force Quit). The `kRecord <date> <time>.aac` file in the destination folder plays in QuickTime and contains about the first minute.
 - [ ] **Unwritable folder.** Choose a folder, then make it read-only in Finder (Get Info → Sharing & Permissions → Read only). Press Record: no recording starts and an error says the folder cannot be written to.
 
 ## Recording session

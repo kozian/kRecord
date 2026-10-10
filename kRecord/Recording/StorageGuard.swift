@@ -19,8 +19,8 @@ protocol StorageGuard: Sendable {
 }
 
 struct FileSystemStorageGuard: StorageGuard {
-    /// Room left for finalization (conversion of the intermediates) when the disk fills up.
-    static let defaultReserveBytes: Int64 = 500_000_000
+    /// Room left for repackaging the `.aac` stream into `.m4a` (about 58 MB per hour) when the disk fills up.
+    static let defaultReserveBytes: Int64 = 100_000_000
 
     /// Available bytes on the volume of a URL, or `nil` when unknown.
     typealias CapacityProvider = @Sendable (URL) -> Int64?

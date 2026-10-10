@@ -6,14 +6,15 @@ struct RecordingSettings: Equatable, Sendable {
     var destinationFolder: URL
     /// Core Audio UID of the selected microphone, or `nil` for "System Default".
     var inputDeviceUID: String?
-    var format: OutputFormat
+    /// Repackage the recorded `.aac` stream into `.m4a` when the recording stops.
+    var saveAsM4A: Bool
     var separateFiles: Bool
     var echoCancellation: Bool
 
     static let defaults = RecordingSettings(
         destinationFolder: HomeDirectory.defaultRecordingsFolder,
         inputDeviceUID: nil,
-        format: .aac,
+        saveAsM4A: true,
         separateFiles: false,
         echoCancellation: false)
 }

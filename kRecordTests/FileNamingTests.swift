@@ -4,6 +4,7 @@ import Testing
 
 struct FileNamingTests {
     private let moscow = TimeZone(identifier: "Europe/Moscow")!
+    private let base = "kRecord 2026-10-10 14-30-05"
 
     /// 2026-10-10 14:30:05 in Moscow (UTC+3).
     private var start: Date {
@@ -13,66 +14,49 @@ struct FileNamingTests {
     }
 
     @Test func baseNameUsesLocalStartTime() {
-        #expect(FileNaming.baseName(for: start, timeZone: moscow) == "kRecord 2026-10-10 14-30-05")
+        #expect(FileNaming.baseName(for: start, timeZone: moscow) == base)
         #expect(FileNaming.baseName(for: start, timeZone: TimeZone(identifier: "UTC")!) == "kRecord 2026-10-10 11-30-05")
     }
 
-    @Test func mixedFileName() {
-        let base = FileNaming.baseName(for: start, timeZone: moscow)
-        #expect(FileNaming.fileName(base: base, role: .mixed, fileExtension: OutputFormat.aac.fileExtension)
-                == "kRecord 2026-10-10 14-30-05.m4a")
+    @Test func mixedFileNames() {
+        #expect(FileNaming.fileName(base: base, role: .mixed, fileExtension: "m4a") == "kRecord 2026-10-10 14-30-05.m4a")
+        #expect(FileNaming.fileName(base: base, role: .mixed, fileExtension: "aac") == "kRecord 2026-10-10 14-30-05.aac")
     }
 
     @Test func separateFileNames() {
-        let base = "kRecord 2026-10-10 14-30-05"
         #expect(FileNaming.fileName(base: base, role: .microphone, fileExtension: "m4a") == "kRecord 2026-10-10 14-30-05 (mic).m4a")
         #expect(FileNaming.fileName(base: base, role: .system, fileExtension: "m4a") == "kRecord 2026-10-10 14-30-05 (system).m4a")
     }
 
-    @Test func intermediateFileNames() {
-        let base = "kRecord 2026-10-10 14-30-05"
-        #expect(FileNaming.fileName(base: base, role: .recordingMicrophone, fileExtension: FileNaming.intermediateExtension)
-                == "kRecord 2026-10-10 14-30-05 (recording mic).caf")
-        #expect(FileNaming.fileName(base: base, role: .recordingSystem, fileExtension: FileNaming.intermediateExtension)
-                == "kRecord 2026-10-10 14-30-05 (recording system).caf")
-    }
-
-    @Test func noCollisionKeepsName() {
-        let names = FileNaming.uniqueFileNames(base: "kRecord 2026-10-10 14-30-05", roles: [.mixed], fileExtension: "m4a") { _ in false }
-        #expect(names == ["kRecord 2026-10-10 14-30-05.m4a"])
+    @Test func noCollisionKeepsBase() {
+        #expect(FileNaming.availableBase(base, roles: [.mixed]) { _ in false } == base)
     }
 
     @Test func collisionAppendsNumber() {
-        let existing: Set = ["kRecord 2026-10-10 14-30-05.m4a", "kRecord 2026-10-10 14-30-05 2.m4a"]
-        let names = FileNaming.uniqueFileNames(base: "kRecord 2026-10-10 14-30-05", roles: [.mixed], fileExtension: "m4a") {
-            existing.contains($0)
-        }
-        #expect(names == ["kRecord 2026-10-10 14-30-05 3.m4a"])
+        let existing: Set = ["\(base).m4a", "\(base) 2.m4a"]
+        #expect(FileNaming.availableBase(base, roles: [.mixed]) { existing.contains($0) } == "\(base) 3")
+    }
+
+    /// The `.aac` stream becomes an `.m4a` of the same name, so either extension takes the name.
+    @Test func eitherExtensionTakesTheName() {
+        #expect(FileNaming.availableBase(base, roles: [.mixed]) { $0 == "\(base).aac" } == "\(base) 2")
+        #expect(FileNaming.availableBase(base, roles: [.mixed]) { $0 == "\(base).m4a" } == "\(base) 2")
+        #expect(FileNaming.availableBase(base, roles: [.mixed]) { $0 == "\(base).wav" } == base)
     }
 
     @Test func separateFilesShareOneNumber() {
         // Only the system file collides, but both files move to number 2.
-        let existing: Set = ["kRecord 2026-10-10 14-30-05 (system).wav"]
-        let names = FileNaming.uniqueFileNames(base: "kRecord 2026-10-10 14-30-05", roles: [.microphone, .system],
-                                               fileExtension: "wav") { existing.contains($0) }
-        #expect(names == ["kRecord 2026-10-10 14-30-05 2 (mic).wav", "kRecord 2026-10-10 14-30-05 2 (system).wav"])
+        let existing: Set = ["\(base) (system).m4a"]
+        let available = FileNaming.availableBase(base, roles: [.microphone, .system]) { existing.contains($0) }
+        #expect(available == "\(base) 2")
+        #expect(FileNaming.fileName(base: available, role: .microphone, fileExtension: "m4a") == "\(base) 2 (mic).m4a")
     }
 
-    @Test func otherExtensionDoesNotCollide() {
-        let existing: Set = ["kRecord 2026-10-10 14-30-05.wav"]
-        let names = FileNaming.uniqueFileNames(base: "kRecord 2026-10-10 14-30-05", roles: [.mixed], fileExtension: "m4a") {
-            existing.contains($0)
-        }
-        #expect(names == ["kRecord 2026-10-10 14-30-05.m4a"])
-    }
-
-    @Test func uniqueURLsChecksDirectory() throws {
+    @Test func availableBaseChecksDirectory() throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: "FileNamingTests-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
-        try Data().write(to: directory.appending(path: "kRecord 2026-10-10 14-30-05.m4a"))
-
-        let urls = FileNaming.uniqueURLs(in: directory, base: "kRecord 2026-10-10 14-30-05", roles: [.mixed], fileExtension: "m4a")
-        #expect(urls.map(\.lastPathComponent) == ["kRecord 2026-10-10 14-30-05 2.m4a"])
+        try Data().write(to: directory.appending(path: "\(base).aac"))
+        #expect(FileNaming.availableBase(in: directory, base: base, roles: [.mixed]) == "\(base) 2")
     }
 }

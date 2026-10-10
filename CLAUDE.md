@@ -21,10 +21,10 @@ DEBUG builds have a headless recording harness (`kRecord/Debug/DebugRecording.sw
 
 ```sh
 open -n build/DerivedData/Build/Products/Debug/kRecord.app --args -KRDebugRecord 10 \
-  [-KRDebugSources all|mic|system] [-KRDebugFormat aac|alac|wav] [-KRDebugSeparate YES] [-KRDebugEchoCancellation YES]
+  [-KRDebugSources all|mic|system] [-KRDebugSaveAsM4A NO] [-KRDebugSeparate YES] [-KRDebugEchoCancellation YES]
 ```
 
-It records to `~/Music/kRecord/` through the production capture → writer → finalizer pipeline and logs to `~/Music/kRecord/debug-recording.log`. Permission prompts and sound appear on the Mac's own screen and speakers, so ask the user to be at the Mac when a check needs them.
+It records to `~/Music/kRecord/` through `RecordingSession` and the production capture → writer → finalizer pipeline and logs to `~/Music/kRecord/debug-recording.log`. Permission prompts and sound appear on the Mac's own screen and speakers, so ask the user to be at the Mac when a check needs them.
 
 ## Code conventions
 
@@ -37,6 +37,6 @@ It records to `~/Music/kRecord/` through the production capture → writer → f
 ## Integration points for the remaining tasks
 
 - `RecordingSession` (`@MainActor @Observable`) is the single source of truth for UI: `start()`, `stop()` (returns after saving, use it for quit), `state`, `formattedElapsedTime`, `levels`, `lastError` / `dismissError()`, `lastResult?.systemAudioSilent`, `canStart`.
-- It takes `RecordingSession.Dependencies`: `settings` must return a `RecordingSettings` snapshot (to be produced by `SettingsStore`), and `permittedSources` must return the sources allowed by `PermissionsManager` (system audio status is "unknown" and counts as permitted). Production wiring: `makeEngine: { $0 ? VoiceProcessingCaptureEngine() : AggregateCaptureEngine() }`, `makeWriter: { CAFRecordingWriter() }`, `finalizer: AudioFinalizer()`, `storage: FileSystemStorageGuard()`.
+- It takes `RecordingSession.Dependencies`: `settings` must return a `RecordingSettings` snapshot (to be produced by `SettingsStore`), and `permittedSources` must return the sources allowed by `PermissionsManager` (system audio status is "unknown" and counts as permitted). Production wiring: `makeEngine: { $0 ? VoiceProcessingCaptureEngine() as any CaptureEngine : AggregateCaptureEngine() }`, `makeWriter: { AACRecordingWriter() }`, `finalizer: AudioFinalizer()`, `storage: FileSystemStorageGuard()`.
 - `HomeDirectory.defaultRecordingsFolder` is the real `~/Music/kRecord/` (the sandbox's `NSHomeDirectory()` is the container).
 - Input device listing should reuse `CoreAudioHAL` (`allDevices`, `inputStreams(of:)`, `uid(of:)`, `name(of:)`) and `DeviceMonitor` for change notifications.

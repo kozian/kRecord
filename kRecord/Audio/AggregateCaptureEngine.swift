@@ -72,7 +72,7 @@ actor AggregateCaptureEngine: CaptureEngine {
         // The sample rate of the first aggregate that works defines the recording.
         let probe = try Self.makeAggregate(candidates: Self.inputCandidates(input, sources: configuration.sources),
                                            tap: tap, sampleRate: nil)
-        let rate = CoreAudioHAL.nominalSampleRate(of: probe.layout.aggregate) ?? OutputFormat.sampleRate
+        let rate = CoreAudioHAL.nominalSampleRate(of: probe.layout.aggregate) ?? AACEncoding.sampleRate
         let capacity = Int(rate * Self.ringSeconds)
         // The microphone ring exists even without a device so a later device can join and the
         // track stays aligned (silence is written while there is no microphone).

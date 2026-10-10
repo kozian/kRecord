@@ -5,7 +5,8 @@ import Synchronization
 /// Writer that drains nothing; tests trigger failures and control `finish`.
 final class FakeRecordingWriter: RecordingWriter {
     struct State {
-        var started: IntermediateFiles?
+        var plan: WriterPlan?
+        var result = WriterResult(streams: [], systemAudioSilent: false)
         var startError: RecordingWriterError?
         var finishError: RecordingWriterError?
         var failures: AsyncStream<RecordingWriterError>.Continuation?
@@ -20,9 +21,9 @@ final class FakeRecordingWriter: RecordingWriter {
         return stream
     }
 
-    func start(streams: CaptureStreams, files: IntermediateFiles) async throws(RecordingWriterError) {
+    func start(streams: CaptureStreams, plan: WriterPlan) async throws(RecordingWriterError) {
         let error: RecordingWriterError? = state.withLock {
-            $0.started = files
+            $0.plan = plan
             return $0.startError
         }
         if let error { throw error }
@@ -32,14 +33,16 @@ final class FakeRecordingWriter: RecordingWriter {
         _ = state.withLock { $0.failures?.yield(error) }
     }
 
-    func finish() async throws(RecordingWriterError) -> WrittenFrames {
-        let error: RecordingWriterError? = state.withLock {
+    var plan: WriterPlan? { state.withLock { $0.plan } }
+
+    func finish() async throws(RecordingWriterError) -> WriterResult {
+        let (error, result) = state.withLock {
             $0.finished = true
             $0.failures?.finish()
-            return $0.finishError
+            return ($0.finishError, $0.result)
         }
         if let error { throw error }
-        return WrittenFrames(microphone: 0, system: 0)
+        return result
     }
 }
 
@@ -47,7 +50,7 @@ final class FakeRecordingWriter: RecordingWriter {
 final class FakeFinalizer: Finalizer {
     struct State {
         var requests: [FinalizationRequest] = []
-        var result = FinalizationResult(outputs: [], systemAudioSilent: false)
+        var outputs: [URL] = []
         var error: FinalizerError?
         var holding = false
         var waiting: CheckedContinuation<Void, Never>?
@@ -73,7 +76,7 @@ final class FakeFinalizer: Finalizer {
 
     var isWaiting: Bool { state.withLock { $0.waiting != nil } }
 
-    func finalize(_ request: FinalizationRequest) async throws(FinalizerError) -> FinalizationResult {
+    func finalize(_ request: FinalizationRequest) async throws(FinalizerError) -> [URL] {
         let holding = state.withLock {
             $0.requests.append(request)
             return $0.holding
@@ -83,9 +86,9 @@ final class FakeFinalizer: Finalizer {
                 state.withLock { $0.waiting = continuation }
             }
         }
-        let (result, error) = state.withLock { ($0.result, $0.error) }
+        let (outputs, error) = state.withLock { ($0.outputs, $0.error) }
         if let error { throw error }
-        return result
+        return outputs
     }
 }
 

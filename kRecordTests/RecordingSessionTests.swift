@@ -43,18 +43,21 @@ final class RecordingSessionTests {
         #expect(engine.isRunning)
         #expect(engine.configurations == [CaptureConfiguration(inputDeviceUID: nil, sources: .all)])
 
+        let base = FileNaming.baseName(for: clock.date)
+        #expect(writer.plan == .mixed(settings.destinationFolder.appending(path: "\(base).aac")))
+
+        let stream = RecordedStream(url: settings.destinationFolder.appending(path: "\(base).aac"), frames: 480)
+        writer.state.withLock { $0.result = WriterResult(streams: [stream], systemAudioSilent: false) }
+        let saved = settings.destinationFolder.appending(path: "\(base).m4a")
+        finalizer.state.withLock { $0.outputs = [saved] }
+
         await session.stop()
         #expect(session.state == .idle)
         #expect(!engine.isRunning)
         #expect(writer.state.withLock { $0.finished })
-        let request = try #require(finalizer.requests.first)
-        #expect(request.format == .aac)
-        #expect(!request.separateFiles)
-        #expect(request.baseName == FileNaming.baseName(for: clock.date))
-        #expect(request.intermediates.microphone?.lastPathComponent == "\(request.baseName) (recording mic).caf")
-        #expect(request.intermediates.system?.lastPathComponent == "\(request.baseName) (recording system).caf")
+        #expect(finalizer.requests == [FinalizationRequest(streams: [stream], saveAsM4A: true)])
         #expect(session.lastError == nil)
-        #expect(session.lastResult != nil)
+        #expect(session.lastResult == FinalizationResult(outputs: [saved], systemAudioSilent: false))
     }
 
     @Test func elapsedTimeFollowsClock() async {
@@ -85,18 +88,31 @@ final class RecordingSessionTests {
     // MARK: Settings snapshot and engine choice
 
     @Test func settingsAreSnapshotAtStart() async throws {
-        settings.format = .wav
+        settings.saveAsM4A = false
         settings.separateFiles = true
         settings.inputDeviceUID = "usb-mic"
         await session.start()
-        settings.format = .alac
+        settings.saveAsM4A = true
         settings.separateFiles = false
         await session.stop()
 
         let request = try #require(finalizer.requests.first)
-        #expect(request.format == .wav)
-        #expect(request.separateFiles)
+        #expect(!request.saveAsM4A)
+        guard case .separate = writer.plan else {
+            Issue.record("expected separate files, got \(String(describing: writer.plan))")
+            return
+        }
         #expect(engine.configurations.first?.inputDeviceUID == "usb-mic")
+    }
+
+    @Test func separateFilesNameEachCapturedSource() async {
+        settings.separateFiles = true
+        permitted = .system
+        await session.start()
+        let base = FileNaming.baseName(for: clock.date)
+        #expect(writer.plan == .separate(microphone: nil,
+                                         system: settings.destinationFolder.appending(path: "\(base) (system).aac")))
+        await session.stop()
     }
 
     @Test func echoCancellationSettingChoosesEngine() async {
@@ -124,9 +140,6 @@ final class RecordingSessionTests {
         await session.start()
         #expect(engine.configurations.first?.sources == .system)
         await session.stop()
-        let request = finalizer.requests.first
-        #expect(request?.intermediates.microphone == nil)
-        #expect(request?.intermediates.system != nil)
     }
 
     // MARK: Finishing
@@ -203,17 +216,20 @@ final class RecordingSessionTests {
         #expect(session.lastError == .writeFailed)
     }
 
-    @Test func saveFailureKeepsErrorUntilDismissed() async {
-        finalizer.state.withLock { $0.error = .cannotWriteOutput(URL(fileURLWithPath: "/x")) }
+    @Test func saveFailureKeepsStreamAndErrorUntilDismissed() async {
+        let stream = RecordedStream(url: URL(fileURLWithPath: "/tmp/rec.aac"), frames: 480)
+        writer.state.withLock { $0.result = WriterResult(streams: [stream], systemAudioSilent: false) }
+        finalizer.state.withLock { $0.error = .cannotRepackage(stream.url) }
         await session.start()
         await session.stop()
         #expect(session.lastError == .saveFailed)
+        #expect(session.lastResult?.outputs == [stream.url])
         session.dismissError()
         #expect(session.lastError == nil)
     }
 
     @Test func newRecordingClearsPreviousError() async {
-        finalizer.state.withLock { $0.error = .cannotWriteOutput(URL(fileURLWithPath: "/x")) }
+        finalizer.state.withLock { $0.error = .cannotRepackage(URL(fileURLWithPath: "/x")) }
         await session.start()
         await session.stop()
         finalizer.state.withLock { $0.error = nil }
@@ -222,8 +238,16 @@ final class RecordingSessionTests {
         await session.stop()
     }
 
+    @Test func writerFinishFailureSkipsSaving() async {
+        writer.state.withLock { $0.finishError = .writeFailed(URL(fileURLWithPath: "/x")) }
+        await session.start()
+        await session.stop()
+        #expect(session.lastError == .writeFailed)
+        #expect(finalizer.requests.isEmpty)
+    }
+
     @Test func silentSystemAudioIsReported() async {
-        finalizer.state.withLock { $0.result = FinalizationResult(outputs: [], systemAudioSilent: true) }
+        writer.state.withLock { $0.result = WriterResult(streams: [], systemAudioSilent: true) }
         await session.start()
         await session.stop()
         #expect(session.lastResult?.systemAudioSilent == true)

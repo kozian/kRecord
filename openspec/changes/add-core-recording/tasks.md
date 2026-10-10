@@ -15,8 +15,8 @@
 
 ## 3. Core utilities
 
-- [ ] 3.1 Update `FileNaming` for the AAC pipeline: timestamp format `kRecord YYYY-MM-DD HH-mm-ss`, ` (mic)` / ` (system)` suffixes, `m4a` / `aac` extensions, no ` (recording …)` suffixes, collision numbering ` 2`, ` 3`… that treats a name as taken if it exists with either extension; verify with unit tests covering all spec scenarios
-- [ ] 3.2 Replace `OutputFormat` with AAC encoder settings (48 kHz, 128 kbps constant bit rate, mono and stereo) used for live ADTS writing; remove ALAC and WAV; verify with unit tests on the settings and the measured bit rate of an encoded silent file
+- [x] 3.1 Update `FileNaming` for the AAC pipeline: timestamp format `kRecord YYYY-MM-DD HH-mm-ss`, ` (mic)` / ` (system)` suffixes, `m4a` / `aac` extensions, no ` (recording …)` suffixes, collision numbering ` 2`, ` 3`… that treats a name as taken if it exists with either extension; verify with unit tests covering all spec scenarios
+- [x] 3.2 Replace `OutputFormat` with AAC encoder settings (48 kHz, 128 kbps constant bit rate, mono and stereo) used for live ADTS writing; remove ALAC and WAV; verify with unit tests on the settings and the measured bit rate of an encoded silent file
 - [x] 3.3 Implement the lock-free SPSC ring buffer on `Synchronization.Atomic`; verify with unit tests for wraparound, overflow handling, and a concurrent producer/consumer stress test
 - [x] 3.4 Implement level calculation (peak/RMS → normalized meter value) with an atomic snapshot; verify with unit tests on known signals (silence, full-scale sine)
 
@@ -41,11 +41,11 @@
 
 ## 7. Recording output
 
-- [ ] 7.1 Rewrite `RecordingWriter` for live AAC: a writer task drains the ring buffers, mixes in real time in mixed mode (mic centered, −3 dB per source, clamp) or keeps sources apart in separate mode, encodes AAC into ADTS `.aac` files under the final names, counts encoded frames, and detects an all-zero system track; verify with unit tests feeding fake frames (decoded content and mix values, frame counts, silence flag, a copy of an unclosed file is playable, write failures)
-- [ ] 7.2 Rewrite `Finalizer` as repackaging: with "Save as m4a" on, copy the AAC packets of each `.aac` into an `.m4a` with the magic cookie and a packet table (2112 priming frames, exact valid frame count), then delete the `.aac`; with it off, keep the `.aac`; on failure keep the `.aac`; verify with unit tests (no re-encoding: identical packets, exact duration, extension, removed `.aac`, failure path)
-- [ ] 7.3 Lower the `StorageGuard` free-space reserve to 100 MB (pre-start writable probe and folder creation, 5 s free-space check, write-error and folder-loss detection stay); update its unit tests and the disk-full QA item
-- [ ] 7.4 Verify crash safety manually: force-quit during a recording and confirm the `.aac` file plays in QuickTime; add this check to the QA checklist
-- [ ] 7.5 Adapt the rest of the code to the AAC pipeline: `RecordingSettings` (`saveAsM4A` instead of `format`), `RecordingSession` (final names and the writer's silence flag), the DEBUG recording harness (`-KRDebugSaveAsM4A`), `CLAUDE.md`, and the QA checklist; remove the CAF/PCM code; verify all unit tests pass and a debug recording in each mode (mixed/separate × m4a on/off) produces the expected files
+- [x] 7.1 Rewrite `RecordingWriter` for live AAC: a writer task drains the ring buffers, mixes in real time in mixed mode (mic centered, −3 dB per source, clamp) or keeps sources apart in separate mode, encodes AAC into ADTS `.aac` files under the final names, counts encoded frames, and detects an all-zero system track; verify with unit tests feeding fake frames (decoded content and mix values, frame counts, silence flag, a copy of an unclosed file is playable, write failures)
+- [x] 7.2 Rewrite `Finalizer` as repackaging: with "Save as m4a" on, copy the AAC packets of each `.aac` into an `.m4a` with the magic cookie and a packet table (2112 priming frames, exact valid frame count), then delete the `.aac`; with it off, keep the `.aac`; on failure keep the `.aac`; verify with unit tests (no re-encoding: identical packets, exact duration, extension, removed `.aac`, failure path)
+- [x] 7.3 Lower the `StorageGuard` free-space reserve to 100 MB (pre-start writable probe and folder creation, 5 s free-space check, write-error and folder-loss detection stay); update its unit tests and the disk-full QA item
+- [x] 7.4 Verify crash safety manually: force-quit during a recording and confirm the `.aac` file plays in QuickTime; add this check to the QA checklist
+- [x] 7.5 Adapt the rest of the code to the AAC pipeline: `RecordingSettings` (`saveAsM4A` instead of `format`), `RecordingSession` (final names and the writer's silence flag), the DEBUG recording harness (`-KRDebugSaveAsM4A`), `CLAUDE.md`, and the QA checklist; remove the CAF/PCM code; verify all unit tests pass and a debug recording in each mode (mixed/separate × m4a on/off) produces the expected files
 
 ## 8. Recording session
 
