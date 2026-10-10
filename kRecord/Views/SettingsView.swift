@@ -31,9 +31,11 @@ struct SettingsView: View {
             }
 
             Section("Recording") {
-                MicrophonePicker(settings: settings, devices: model.devices, isLocked: isLocked)
                 Toggle("Save as m4a", isOn: bound(\.saveAsM4A))
                     .disabled(isLocked)
+                Text("Otherwise recordings are saved as .aac.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Toggle("Save microphone and system audio as separate files", isOn: bound(\.separateFiles))
                     .disabled(isLocked)
                 Toggle("Echo cancellation", isOn: bound(\.echoCancellation))
@@ -44,7 +46,9 @@ struct SettingsView: View {
             }
 
             Section("Menu Bar") {
+                Toggle("Show in menu bar", isOn: bound(\.showsMenuBarItem))
                 Toggle("Show recording time in menu bar", isOn: bound(\.showTimeInMenuBar))
+                    .disabled(!settings.showsMenuBarItem)
             }
         }
         .formStyle(.grouped)

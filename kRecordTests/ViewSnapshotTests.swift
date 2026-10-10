@@ -164,16 +164,20 @@ struct ViewSnapshotTests {
         func switches() -> [Bool] {
             hostedControls(SettingsView(model: app.model)).filter { $0.kind == "PlatformSwitch" }.map { $0.enabled }
         }
-        // Save as m4a, separate files, echo cancellation, menu bar time.
-        #expect(switches() == [true, true, true, true])
+        // Save as m4a, separate files, echo cancellation, show in menu bar, menu bar time.
+        #expect(switches() == [true, true, true, true, true])
 
         await app.model.startRecording()
         try render(SettingsView(model: app.model), name: "settings-locked")
-        // The recording options are locked; the menu bar time applies immediately (settings spec).
-        #expect(switches() == [false, false, false, true])
+        // The recording options are locked; the menu bar settings apply immediately (settings spec).
+        #expect(switches() == [false, false, false, true, true])
 
         await app.session.stop()
-        #expect(switches() == [true, true, true, true])
+        #expect(switches() == [true, true, true, true, true])
+
+        // Without the menu bar item, its time setting cannot be changed.
+        app.settings.showsMenuBarItem = false
+        #expect(switches() == [true, true, true, true, false])
     }
 
     // MARK: Menu bar

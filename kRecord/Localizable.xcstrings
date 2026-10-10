@@ -243,6 +243,17 @@
         }
       }
     },
+    "Otherwise recordings are saved as .aac." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Иначе записи сохраняются в формате .aac."
+          }
+        }
+      }
+    },
     "Quit" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -261,28 +272,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Записать"
-          }
-        }
-      }
-    },
-    "Record microphone" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Записывать микрофон"
-          }
-        }
-      }
-    },
-    "Record system audio" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Записывать системный звук"
           }
         }
       }
@@ -408,6 +397,17 @@
         }
       }
     },
+    "Show in menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать в строке меню"
+          }
+        }
+      }
+    },
     "Show recording time in menu bar" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -492,6 +492,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Остановить запись и выйти?"
+          }
+        }
+      }
+    },
+    "System audio" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системный звук"
           }
         }
       }

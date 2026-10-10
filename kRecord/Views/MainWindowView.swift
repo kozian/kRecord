@@ -27,10 +27,10 @@ struct MainWindowView: View {
             }
 
             VStack(spacing: 10) {
-                SourceLevelMeter(title: "Record microphone", isOn: sourceBinding(\.recordsMicrophone),
+                SourceLevelMeter(title: "Microphone", isOn: sourceBinding(\.recordsMicrophone),
                                  isLocked: model.recordingSettingsAreLocked,
                                  value: session.levels.microphone.meterValue())
-                SourceLevelMeter(title: "Record system audio", isOn: sourceBinding(\.recordsSystemAudio),
+                SourceLevelMeter(title: "System audio", isOn: sourceBinding(\.recordsSystemAudio),
                                  isLocked: model.recordingSettingsAreLocked,
                                  value: session.levels.system.meterValue())
             }

@@ -22,6 +22,7 @@ final class SettingsStore {
         static let separateFiles = "separateFiles"
         static let echoCancellation = "echoCancellation"
         static let showTimeInMenuBar = "showTimeInMenuBar"
+        static let showsMenuBarItem = "showsMenuBarItem"
         static let recordsMicrophone = "recordsMicrophone"
         static let recordsSystemAudio = "recordsSystemAudio"
         static let requestedPermissions = "requestedPermissions"
@@ -154,6 +155,15 @@ final class SettingsStore {
             return defaults.bool(forKey: Key.showTimeInMenuBar)
         }
         set { withMutation(keyPath: \.showTimeInMenuBar) { defaults.set(newValue, forKey: Key.showTimeInMenuBar) } }
+    }
+
+    /// The menu bar item is shown (menu-bar spec). Default on; applies immediately.
+    var showsMenuBarItem: Bool {
+        get {
+            access(keyPath: \.showsMenuBarItem)
+            return defaults.object(forKey: Key.showsMenuBarItem) as? Bool ?? true
+        }
+        set { withMutation(keyPath: \.showsMenuBarItem) { defaults.set(newValue, forKey: Key.showsMenuBarItem) } }
     }
 
     // MARK: Sources

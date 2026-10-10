@@ -75,7 +75,7 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Button unavailable while saving | `AppModelTests.controlFollowsSessionState`; `ViewSnapshotTests.mainWindowSaving` |
 | Idle display | `RecordingSessionTests.elapsedTimeFollowsClock`; QA [Main window] |
 | Meters during recording | `ViewSnapshotTests.mainWindowRecording`; QA [Main window] Level meters |
-| Picker synced with settings | one `SettingsStore` behind both pickers (`MicrophonePicker`); QA [Main window] |
+| Microphone choice remembered | `SettingsStoreTests.settingsPersistAcrossInstances`; QA [Main window] Microphone picker |
 | Picker locked during recording | `AppModelTests.controlFollowsSessionState`; `ViewSnapshotTests.settingsLockedWhileRecording`; QA [Main window] |
 | Microphone permission missing | `ViewSnapshotTests.mainWindowMicrophoneDenied`; QA [Main window] |
 | Both permissions missing | `AppModelTests.cannotStartWhenNothingIsPermitted`; `ViewSnapshotTests.mainWindowNothingPermitted` (cannot be provoked by hand: the system audio status is unknown) |
@@ -85,6 +85,7 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Available during a recording | `ViewSnapshotTests.mainWindowRecording` (icon buttons enabled); QA [Main window] Buttons during a recording |
 | No source turned on | `AppModelTests.bothSourcesOffDisableTheControl`, `ViewSnapshotTests.mainWindowSourceSwitches`; QA [Recording session] Both off |
 | Turning the microphone off | `ViewSnapshotTests.mainWindowSourceSwitches` (empty microphone meter while recording); QA [Recording session] Microphone off |
+| Checkbox labels | `ViewSnapshotTests.mainWindowIdle` (English and Russian); QA [Settings] Source labels |
 | Checkboxes on by default / state remembered | `SettingsStoreTests.firstLaunchDefaults`, `sourceSwitchesPersistAndReachTheSnapshot`; QA [Recording session] Switches remembered and locked |
 | Checkboxes locked during recording | `ViewSnapshotTests.mainWindowSourceSwitches` (disabled checkboxes while recording); QA [Recording session] Switches remembered and locked |
 
@@ -93,6 +94,8 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Scenario | Checked by |
 |---|---|
 | Item visible after closing window | harness (status item window present with the main window closed); QA [Menu bar] |
+| Item hidden by the setting | `SettingsStoreTests` (default on, persists); checked by the user with the remote control (`hideMenuBarItem`); QA [Settings] Show in menu bar |
+| Reopening without the menu bar item | `AppDelegate.applicationShouldHandleReopen`; QA [Settings] Show in menu bar |
 | Icon turns red / returns to grey | `ViewSnapshotTests.menuBarIconColors`, `menuBarRecordingWithTime`; QA [Menu bar] |
 | Time shown / Time hidden by default | `SettingsStoreTests.firstLaunchDefaults`; `ViewSnapshotTests.menuBarRecordingWithTime`; QA [Menu bar] |
 | Menu while idle / while recording | QA [Menu bar] Menu contents |
@@ -119,7 +122,8 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 
 | Scenario | Checked by |
 |---|---|
-| Settings window contents | `ViewSnapshotTests.settingsDefault`; QA [Settings] |
+| Settings window contents | `ViewSnapshotTests.settingsDefault`, `settingsLockedWhileRecording` (five switches); QA [Settings] Window contents |
+| Save format explained | `ViewSnapshotTests.settingsDefault` (English and Russian); QA [Settings] Window contents |
 | Settings shown without scrolling | harness (remote control `logState`: no scroller, document fits, in English and Russian, with and without the folder notice); QA [Settings] No scroll bar |
 | First launch defaults | `SettingsStoreTests.firstLaunchDefaults`, `realDefaultFolderIsMusicKRecord`; QA [Settings] |
 | Restart keeps settings | `SettingsStoreTests.settingsPersistAcrossInstances`; QA [Settings] Persistence |
@@ -129,5 +133,6 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Custom folder deleted | `SettingsStoreTests.deletedCustomFolderRevertsToDefaultWithNotice`, `FolderRestorationTests`; QA [Settings] |
 | Save as m4a locked during recording | `ViewSnapshotTests.settingsLockedWhileRecording`; QA [Settings] |
 | Menu bar time toggled during recording | `ViewSnapshotTests.settingsLockedWhileRecording` (switch stays enabled); QA [Menu bar] |
+| Menu bar item hidden | `ViewSnapshotTests.settingsLockedWhileRecording` (time switch disabled without the item); QA [Settings] Show in menu bar |
 | Russian system language | harness (menus in Russian with `-AppleLanguages (ru)`); `ViewSnapshotTests` renders in Russian; `scripts/check-localization.py`; QA [Localization] |
 | Unsupported system language | harness (menus in English with `-AppleLanguages (de)`); QA [Localization] |

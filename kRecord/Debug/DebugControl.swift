@@ -8,7 +8,7 @@ import Foundation
 ///     echo <command> > ~/Music/kRecord/.debug-command
 ///
 /// Commands: `closeMainWindow`, `openSettings`, `openSettingsLikeMenuBar` (through `SettingsWindow.show`,
-/// as the menu bar menu does), `startRecording`, `stopRecording`, `logState`, `quit`,
+/// as the menu bar menu does), `hideMenuBarItem`, `showMenuBarItem`, `startRecording`, `stopRecording`, `logState`, `quit`,
 /// `confirmAlert`, `cancelAlert` (press the default or the Escape button of the modal alert).
 /// Output goes to `~/Music/kRecord/debug-control.log`.
 @MainActor
@@ -42,6 +42,9 @@ enum DebugControl {
             performSettingsMenuItem()
         case "openSettingsLikeMenuBar":
             SettingsWindow.show(using: { performSettingsMenuItem() })
+        case "hideMenuBarItem", "showMenuBarItem":
+            model.settings.showsMenuBarItem = command == "showMenuBarItem"
+            log("showsMenuBarItem=\(model.settings.showsMenuBarItem)")
         case "startRecording":
             Task {
                 await model.startRecording()
