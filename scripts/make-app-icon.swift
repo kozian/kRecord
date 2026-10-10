@@ -1,7 +1,7 @@
 #!/usr/bin/env swift
 // Builds kRecord/Assets.xcassets/AppIcon.appiconset from one square artwork PNG.
 //
-//     swift scripts/make-app-icon.swift design/AppleIcon-1024.png
+//     swift scripts/make-app-icon.swift design/AppIcon-v4-1024.png
 //
 // The artwork is a rounded "plate" drawn on an opaque background. The script finds the plate's
 // edges and corner radius, cuts it out, scales it to the 824 x 824 body of Apple's macOS icon grid
@@ -32,7 +32,7 @@ func luminance(_ x: Int, _ y: Int) -> Double {
 /// First index from the start of `points` where luminance jumps from the background level.
 func edge(_ points: [(Int, Int)]) -> Int {
     let background = luminance(points[0].0, points[0].1)
-    for (index, point) in points.enumerated() where abs(luminance(point.0, point.1) - background) > 35 {
+    for (index, point) in points.enumerated() where abs(luminance(point.0, point.1) - background) > 20 {
         return index
     }
     fatalError("no plate edge found")
