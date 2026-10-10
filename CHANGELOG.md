@@ -18,6 +18,7 @@ Versions follow semantic versioning; the build number is the git commit count of
 - The Settings window is sized to its content and does not scroll, also when the folder notice is shown and in Russian.
 - In the main window, a colon follows the microphone symbol before the device picker, so the symbol reads as the picker's label (presentation only; the main-window spec does not describe the symbol).
 - The audio-capture, menu-bar, and settings specs state these cases explicitly as scenarios.
+
 ## 0.2.0 — 2026-10-10
 
 ### add-core-recording

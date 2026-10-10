@@ -84,8 +84,9 @@ SECTION="$(python3 scripts/changelog.py "$VERSION" ${PREVIOUS_TAG:+--since "$PRE
     echo "Versions follow semantic versioning; the build number is the git commit count of the release commit."
     echo
     echo "$SECTION"
-    if [[ -f "$BACKUP/$CHANGELOG" ]]; then
+    if [[ -f "$BACKUP/$CHANGELOG" ]] && grep -q '^## ' "$BACKUP/$CHANGELOG"; then
         # Older sections: everything from the first "## " heading of the previous file.
+        echo
         sed -n '/^## /,$p' "$BACKUP/$CHANGELOG"
     fi
 } >"$CHANGELOG"
