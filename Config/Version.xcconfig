@@ -1,5 +1,5 @@
 // The app's version, set by scripts/release.sh. Between releases it keeps the last released numbers.
 // MARKETING_VERSION: semantic version (CFBundleShortVersionString).
 // CURRENT_PROJECT_VERSION: build number (CFBundleVersion) = git commit count of the release commit.
-MARKETING_VERSION = 0.3.0
-CURRENT_PROJECT_VERSION = 48
+MARKETING_VERSION = 0.4.0
+CURRENT_PROJECT_VERSION = 51

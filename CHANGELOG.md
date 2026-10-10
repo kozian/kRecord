@@ -2,6 +2,15 @@
 
 Versions follow semantic versioning; the build number is the git commit count of the release commit.
 
+## 0.4.0 — 2026-10-10
+
+### refine-main-window
+
+- Main window: each source is one row, "☑ Microphone ━━━━" and "☑ System ━━━━" (Russian "Микрофон", "Система"); both meters start at the same x.
+- Main window: no title bar. The window buttons stay; the window can be dragged by its background; the space above and below the timer is equal.
+- The silent system audio hint gets a "Don't show again" link that turns it off.
+- Settings, "Recording" section: a "Warn when a recording has no system audio" toggle, on by default, applies immediately.
+
 ## 0.3.0 — 2026-10-10
 
 ### polish-settings-and-labels
