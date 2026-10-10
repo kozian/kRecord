@@ -21,7 +21,7 @@
 
 ## 4. Main window
 
-- [x] 4.1 Add a colon after the microphone symbol before the device picker (design D7); verify the build, the main window snapshot tests, and that the localization check passes
+- [x] 4.1 Add a colon after the microphone symbol before the device picker, 4 pt before the leading-aligned picker (design D7); verify the build, the main window snapshot tests, and that the localization check passes
 
 ## Workflow follow-up
 

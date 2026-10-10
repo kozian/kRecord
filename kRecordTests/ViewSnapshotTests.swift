@@ -61,6 +61,14 @@ struct ViewSnapshotTests {
         try render(MainWindowView(model: app.model), name: "main-idle-dark", dark: true)
     }
 
+    /// For checking that the microphone picker spans the same width whatever devices it lists.
+    @Test func mainWindowPickerWidths() throws {
+        try render(MainWindowView(model: TestApp(devices: [InputDevice(uid: "a", name: "Mic")]).model),
+                   name: "main-picker-short")
+        try render(MainWindowView(model: TestApp(devices: [InputDevice(uid: "b", name: "A Very Long USB Microphone Name 2000")]).model),
+                   name: "main-picker-long")
+    }
+
     @Test func mainWindowRecording() async throws {
         let app = TestApp()
         await app.model.startRecording()

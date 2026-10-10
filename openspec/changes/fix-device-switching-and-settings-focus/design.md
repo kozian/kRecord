@@ -55,8 +55,10 @@ The form gets `.scrollDisabled(true)` and the `Settings` scene `.windowResizabil
 - **Alternative:** a larger fixed height — breaks again when the notice or translations change the content height.
 - **Verification:** the DEBUG remote control logs, for the open Settings window, whether its scroll view shows a scroller and the document height against the visible height, in English and Russian, with and without the folder notice.
 
-### D7. Colon after the microphone symbol
-In the main window the microphone symbol before the device picker is followed by a colon ("🎤:"), so it reads as a label of the picker. The colon is part of the hidden, secondary-styled label; the picker's accessibility label stays "Microphone". Symbol, colon, and picker sit with no spacing between them, since the picker's bezel has its own inset; a 4 pt gap looked detached.
+### D7. Microphone label and picker in the main window
+In the main window the microphone symbol before the device picker is followed by a colon ("🎤:"), so it reads as a label of the picker. The colon is part of the hidden, secondary-styled label; the picker's accessibility label stays "Microphone". The picker follows 4 pt after the label and is aligned to the leading edge; the free space goes between it and the buttons.
+- **Why:** a SwiftUI menu picker on macOS is never wider than its longest item: neither `maxWidth: .infinity` nor a fixed `frame(width:)` widens it, and a `Menu` sizes to its label the same way. Centered in the row, its side gaps changed with the connected devices' names (first implementation, reported by the user); leading alignment keeps the gap after the label constant.
+- **Alternative:** an `NSPopUpButton` wrapped for SwiftUI would fill the row at a fixed width; not worth the extra control for this.
 
 ## Hardware results (Mac mini, Razer Seiren V3 Mini, echo cancellation on, separate files, clicks played through the speakers)
 

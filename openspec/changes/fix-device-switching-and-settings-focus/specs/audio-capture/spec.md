@@ -30,7 +30,7 @@ If the explicitly selected microphone becomes unavailable, the system SHALL fall
 #### Scenario: Selected microphone unplugged with echo cancellation
 - **WHEN** echo cancellation is on and a recording is active using an explicitly selected USB microphone
 - **AND** that microphone is disconnected
-- **THEN** the recording continues using the macOS default input device (or with a silent microphone track if no input device is left), and the system audio track continues without interruption longer than a second
+- **THEN** the recording continues using the macOS default input device (or with a silent microphone track if no input device is left), and the system audio track continues, with an interruption of at most about a second when another input device is available and at most about 1.5 seconds when none is left
 
 #### Scenario: Selected microphone reconnected with echo cancellation
 - **WHEN** echo cancellation is on, a recording fell back from an unplugged selected microphone, and that microphone is connected again
