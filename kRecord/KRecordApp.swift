@@ -2,6 +2,12 @@ import SwiftUI
 
 @main
 struct KRecordApp: App {
+    init() {
+        #if DEBUG
+        CaptureSpike.runIfRequested()
+        #endif
+    }
+
     var body: some Scene {
         Window("kRecord", id: "main") {
             Text("Ready to record")

@@ -10,8 +10,8 @@
 
 ## 2. Capture spike (de-risk D1/D2/D6/D10)
 
-- [ ] 2.1 Build a throwaway capture path in the sandboxed app: global process tap + private aggregate device with the default input, recording 10 s to two CAF files; verify by playback that both files contain audio and stay aligned (clap test)
-- [ ] 2.2 Verify in the spike: (a) behavior when the system audio permission is denied (silence vs. error), (b) the voice-processing input can run alongside a tap-only aggregate device and how much ducking remains, (c) the default `~/Music/kRecord` path is writable under the sandbox; record findings and any deviations in `design.md` (update Risks/Decisions) before continuing
+- [x] 2.1 Build a throwaway capture path in the sandboxed app: global process tap + private aggregate device with the default input, recording 10 s to two CAF files; verify by playback that both files contain audio and stay aligned (clap test)
+- [x] 2.2 Verify in the spike: (a) behavior when the system audio permission is denied (silence vs. error), (b) the voice-processing input can run alongside a tap-only aggregate device and how much ducking remains, (c) the default `~/Music/kRecord` path is writable under the sandbox; record findings and any deviations in `design.md` (update Risks/Decisions) before continuing
 
 ## 3. Core utilities
 
@@ -35,7 +35,7 @@
 ## 6. Capture engine
 
 - [ ] 6.1 Define the `CaptureEngine` protocol (start with input device + sources, stop, ring buffers, levels, error/route events) and a `FakeCaptureEngine` for tests; verify the project builds and the fake produces deterministic frames in a unit test
-- [ ] 6.2 Implement `AggregateCaptureEngine` (global stereo tap, private aggregate with drift compensation, single IOProc copying mono mic and stereo system frames into ring buffers and updating levels; supports mic-only and system-only modes); verify with a 60 s manual recording clap test and add capture items to the QA checklist
+- [ ] 6.2 Implement `AggregateCaptureEngine` (global stereo tap, private aggregate with the mic as clock and a drift-compensated tap, silent keep-alive output restarted on output changes, buffer indices computed from sub-device stream counts, single IOProc copying mono mic and stereo system frames into ring buffers and updating levels; supports mic-only and system-only modes) and remove the spike code; verify with a 60 s manual recording clap test including a start in complete silence, and add capture items to the QA checklist
 - [ ] 6.3 Implement `DeviceMonitor` and aggregate rebuild on default-input change and on loss of the selected device (fallback to default, selection remembered); verify manually by switching the default input and unplugging a USB mic mid-recording, and add these cases to the QA checklist
 - [ ] 6.4 Implement `VoiceProcessingCaptureEngine` (AVAudioEngine input with voice processing and minimized ducking + tap-only aggregate, host-time alignment and drift correction); verify manually with speakers that system audio is suppressed in the mic track, and add the echo-cancellation check to the QA checklist
 
