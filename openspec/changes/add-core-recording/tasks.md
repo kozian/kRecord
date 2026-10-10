@@ -34,14 +34,14 @@
 
 ## 6. Capture engine
 
-- [ ] 6.1 Define the `CaptureEngine` protocol (start with input device + sources, stop, ring buffers, levels, error/route events) and a `FakeCaptureEngine` for tests; verify the project builds and the fake produces deterministic frames in a unit test
+- [x] 6.1 Define the `CaptureEngine` protocol (start with input device + sources, stop, ring buffers, levels, error/route events) and a `FakeCaptureEngine` for tests; verify the project builds and the fake produces deterministic frames in a unit test
 - [ ] 6.2 Implement `AggregateCaptureEngine` (global stereo tap, private aggregate with the mic as clock and a drift-compensated tap, silent keep-alive output restarted on output changes, buffer indices computed from sub-device stream counts, single IOProc copying mono mic and stereo system frames into ring buffers and updating levels; supports mic-only and system-only modes) and remove the spike code; verify with a 60 s manual recording clap test including a start in complete silence, and add capture items to the QA checklist
 - [ ] 6.3 Implement `DeviceMonitor` and aggregate rebuild on default-input change and on loss of the selected device (fallback to default, selection remembered); verify manually by switching the default input and unplugging a USB mic mid-recording, and add these cases to the QA checklist
 - [ ] 6.4 Implement `VoiceProcessingCaptureEngine` (AVAudioEngine input with voice processing and minimized ducking + tap-only aggregate, host-time alignment and drift correction); verify manually with speakers that system audio is suppressed in the mic track, and add the echo-cancellation check to the QA checklist
 
 ## 7. Recording output
 
-- [ ] 7.1 Implement `RecordingWriter`: writer task draining the ring buffers into 16-bit 48 kHz CAF intermediates in the destination folder; verify with a unit test feeding fake frames and reading the CAFs back (frame counts, channel counts)
+- [x] 7.1 Implement `RecordingWriter`: writer task draining the ring buffers into 16-bit 48 kHz CAF intermediates in the destination folder; verify with a unit test feeding fake frames and reading the CAFs back (frame counts, channel counts)
 - [ ] 7.2 Implement `Finalizer`: mixed mode (mic centered, −3 dB per source, clamp) and separate mode, encoding to AAC/ALAC/WAV, collision-safe final names, deletion of intermediates, detection of an all-zero system track; verify with unit tests on generated signals (mix values, centered mic, output format/extension, no leftover temp files)
 - [ ] 7.3 Implement `StorageGuard` (pre-start writable probe and folder creation, 5 s free-space check with 500 MB reserve, write-error and folder-loss detection); verify with unit tests using an injected capacity provider and an unwritable temp directory, and add disk-full and drive-eject cases to the QA checklist
 - [ ] 7.4 Verify crash safety manually: force-quit during a recording and confirm the intermediate CAF plays in QuickTime; add this check to the QA checklist
