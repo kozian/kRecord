@@ -44,3 +44,7 @@ On another Mac, unzip the app into Applications and allow it once in System Sett
 ## Manual testing
 
 Hardware-dependent behavior is checked by hand with [docs/manual-qa-checklist.md](docs/manual-qa-checklist.md).
+
+## License
+
+[MIT](LICENSE) © 2026 Kuznetsov Konstantin
