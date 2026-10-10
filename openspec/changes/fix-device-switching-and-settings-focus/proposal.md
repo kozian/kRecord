@@ -29,7 +29,7 @@ None.
 ## Impact
 
 - `kRecord/Audio/VoiceProcessingCaptureEngine.swift`: device monitoring and rebuilding of the voice-processing microphone path during a recording; `VoiceMicrophonePath` converter set up per device format.
-- `kRecord/Audio/AggregateCaptureEngine.swift`: a way to rebuild the system-audio aggregate after voice processing restarts (D6 of the archived add-core-recording design requires voice processing to start first).
+- `kRecord/Audio/AggregateCaptureEngine.swift`: a way to rebuild the system-audio aggregate, used when system audio stalls after the last microphone disappears under voice processing (design D3).
 - `kRecord/Views/MenuBar.swift` and a new `kRecord/Views/SettingsWindow.swift`: the "Settings…" item and bringing the Settings window to the front.
 - `kRecord/Views/MainWindowView.swift`: the colon after the microphone symbol.
 - `kRecord/Views/SettingsView.swift` and the `Settings` scene in `kRecord/KRecordApp.swift`: sizing of the Settings window.

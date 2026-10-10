@@ -29,6 +29,9 @@ final class TimelineAnchor: Sendable {
         framesWritten.store(start + frames, ordering: .releasing)
     }
 
+    /// System frames recorded so far.
+    var frameCount: Int { framesWritten.load(ordering: .acquiring) }
+
     /// The latest anchor, or `nil` before the first IO cycle.
     func latest() -> Point? {
         while true {

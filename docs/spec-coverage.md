@@ -12,11 +12,14 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Stereo content | `RecordingWriterTests.mixedKeepsSystemStereoImage`, `separateFilesKeepSourcesApart`; QA [Audio capture] |
 | Long recording stays in sync | harness (60 s, 7.9 ms offset without drift); QA [Audio capture] 60-minute sync |
 | Default input changes mid-recording | harness (default input switched mid-recording); QA [Audio capture] |
+| Default input changes with echo cancellation | harness (default input switched three times with echo cancellation: equal lengths, clicks within 8 ms; design "Hardware results"); `VoiceMicrophonePathTests` |
 | Specific microphone selected | `SettingsStoreTests.settingsPersistAcrossInstances`, `RecordingSessionTests.settingsAreSnapshotAtStart`; QA [Audio capture] |
 | Aggregate devices are not offered | `AudioDeviceCatalogTests.systemEnumerationIsConsistent` (kRecord's aggregate hidden); QA [Settings] No aggregate devices |
 | Device list reflects hardware changes | `AudioDeviceCatalogTests`; QA [Settings] hot-plug |
 | Selected microphone unplugged during recording | harness (USB microphone unplugged and replugged); QA [Audio capture] |
 | Selected microphone unavailable at start | QA [Audio capture]; `AudioDeviceCatalogTests` (list without the device) |
+| Selected microphone unplugged with echo cancellation | harness (selected device removed: fallback to the default input; USB microphone unplugged with no input left: silent aligned microphone, system continues); `VoiceMicrophonePathTests.paddingWritesExactlyTheMissingFrames`; QA [Audio capture] Echo cancellation: selected microphone unplugged |
+| Selected microphone reconnected with echo cancellation | harness (USB microphone plugged back in, clicks within 5 ms); QA [Audio capture] Echo cancellation: selected microphone plugged back in |
 | Headphones connected mid-recording | QA [Audio capture] output device changes |
 | Echo cancellation enabled with speakers | harness (echo 23.5 dB → 4.8 dB above the noise floor); QA [Audio capture] |
 | Echo cancellation disabled by default | `SettingsStoreTests.firstLaunchDefaults` |

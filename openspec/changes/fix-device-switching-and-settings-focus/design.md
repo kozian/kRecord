@@ -25,7 +25,8 @@ Today `VoiceProcessingCaptureEngine` binds a selected microphone once with `auAu
 ## Decisions
 
 ### D1. Watch devices the same way as the default path
-`VoiceProcessingCaptureEngine` uses a `DeviceMonitor` (device list, default input and output, the current microphone's liveness) and also treats `AVAudioEngineConfigurationChange` of its voice-processing engine as a device change. On each change it resolves the wanted microphone with `AggregateCaptureEngine.resolveInputDevice(selectedUID:)` and rebuilds the microphone path when the wanted device differs from the current one, the current one died, or the voice-processing engine is no longer running. Changes are coalesced by the monitor and handled one at a time on the engine actor.
+`VoiceProcessingCaptureEngine` uses a `DeviceMonitor` (device list, default input and output, the current microphone's liveness) and also treats `AVAudioEngineConfigurationChange` of its voice-processing engine as a device change. On each change it resolves the wanted microphone with `AggregateCaptureEngine.resolveInputDevice(selectedUID:)` and rebuilds the microphone path when the wanted device differs from the one the last rebuild aimed for, the current one died, or the voice-processing engine is no longer running. Changes are coalesced by the monitor and handled one at a time on the engine actor, without suspending; changes during `start` are ignored and one check runs when `start` finishes.
+- **Implementation finding:** voice processing on a device that is not the default input stops its engine right after starting (a configuration change it causes itself). A full rebuild there cost 1.4 s at every start; when the wanted device is unchanged and alive, the engine is first simply restarted (0.07 s), and only rebuilt if that fails. Comparing with the device the last rebuild *aimed for* (not the one in use) keeps a failed device from being retried on every unrelated change, e.g. when kRecord's own aggregates appear in the device list.
 - **Why:** one rule set for both capture modes; the configuration-change notification alone does not say which device to use.
 - **Alternative:** keep relying on the notification and `engine.start()` — that is the current bug.
 
@@ -34,14 +35,13 @@ A rebuild removes the tap from and stops the old `AVAudioEngine`, then creates a
 - **Why:** a voice-processing unit keeps its device binding; reconfiguring a live one is unreliable, and creating the engine is how the first start already works.
 - **Alternative:** `setDeviceID` on the running engine — not reliable with voice processing enabled.
 
-### D3. Restart the system aggregate after voice processing
-Because of the start-order finding (D6 of the archived design), every voice-processing rebuild during a recording is followed by a rebuild of the system aggregate: `AggregateCaptureEngine` gets a method that tears down its IOProc and aggregate and builds them again with the same tap, ring buffers, level snapshot, and timeline anchor. The timeline's frame counter continues, so microphone audio captured during the system gap is trimmed and both tracks lose the same span.
-- **Why:** avoids the frame loss of a system aggregate running underneath a voice-processing start.
-- **Trade-off:** the system track also gets a short gap (aggregate rebuild, under half a second) on each microphone switch.
-- **Verification:** click spacing in the system track after a switch must stay at 1.0 s (the frame-loss symptom was 0.7 s).
+### D3. Keep the system aggregate running; rebuild it only when it stalls
+The plan was to rebuild the system aggregate after every voice-processing rebuild, because of the start-order finding (D6 of the archived design). Measured on hardware, that made things worse: a voice-processing restart under the running aggregate costs about 0.1 s of system audio once (one click interval of 0.89–0.92 s, then 1.0 s spacing again for 20 s, no continuous frame loss), while a rebuild of the aggregate costs about 0.86 s per switch (the rebuild calls take 0.12 s; the rest is the tap starting to deliver again). So a microphone switch leaves the system aggregate alone.
+One case does need it: when the last input device disappears under voice processing (a Mac mini without a built-in microphone, USB microphone unplugged), the system aggregate stops delivering until voice processing starts again, which lost the whole 12.5 s the microphone was unplugged. A supervision task (every 250 ms) watches the system timeline; when it has not advanced for 0.5 s, `AggregateCaptureEngine.rebuildDevice()` tears down the IOProc and aggregate and builds them again with the same tap, ring buffers, level snapshot, and timeline anchor, so the tracks continue where they stopped.
+- **Measured:** unplugging the last microphone loses 1.1–1.4 s of system audio (detection plus rebuild; 1.9 s with a 1 s threshold), plugging it back in 0.4 s.
 
 ### D4. No microphone left
-If voice processing cannot start on any candidate (resolved device, default input), the recording continues with system audio only and a silent microphone track; the next device change tries again. At stop, the microphone path pads its ring up to the system timeline's frame count so separate microphone and system files end together, as they do in the default path. A `.inputDeviceChanged` event is emitted whenever a different microphone is in use.
+If voice processing cannot start on any candidate (resolved device, default input), the recording continues with system audio only and a silent microphone track; a later change of the wanted device tries again. While there is no microphone, the supervision task pads the microphone ring up to the system timeline every 250 ms: the mixed writer advances both tracks together, so without it the system ring (10 s) would overflow. At stop, the microphone path pads its ring the same way so separate microphone and system files end together, as they do in the default path. A `.inputDeviceChanged` event is emitted whenever a different microphone is in use. Microphone-only capture with no microphone left fails with `.failed`.
 - **Why:** matches the default path's fallback and the spec scenario; a failed microphone must not end the recording.
 
 ### D5. "Settings…" as a button that activates the app
@@ -58,9 +58,18 @@ The form gets `.scrollDisabled(true)` and the `Settings` scene `.windowResizabil
 ### D7. Colon after the microphone symbol
 In the main window the microphone symbol before the device picker is followed by a colon ("🎤:"), so it reads as a label of the picker. The colon is part of the hidden, secondary-styled label; the picker's accessibility label stays "Microphone". Symbol, colon, and picker sit with no spacing between them, since the picker's bezel has its own inset; a 4 pt gap looked detached.
 
+## Hardware results (Mac mini, Razer Seiren V3 Mini, echo cancellation on, separate files, clicks played through the speakers)
+
+| Case | Track lengths | System audio lost | Strong clicks, mic after system |
+|---|---|---|---|
+| Default input switched three times (to a test aggregate on the same microphone and back), 40 s | equal | 0.10–0.20 s per switch, 1.0 s spacing otherwise | 7.5–7.8 ms before and after |
+| Selected device removed, fallback to the default input | equal | 0.08 s | 7.2–7.3 ms |
+| Selected USB microphone unplugged (no input left) and plugged back in | equal | 1.1–1.4 s at unplug, 0.4 s at replug | 6.6–7.4 ms before, 4.8–5.0 ms after |
+
 ## Risks / Trade-offs
 
 - [A microphone switch with echo cancellation takes about as long as a voice-processing start, so the microphone track has a gap of roughly a second] → Padded with silence and aligned; accepted for the opt-in mode.
+- [The stall watchdog rebuilds the system aggregate when nothing arrives for 0.5 s, also if the cause is something else] → System audio normally arrives every few milliseconds (the keep-alive output keeps the tap running), so a false positive costs one rebuild of about 0.9 s.
 - [Device events arrive in bursts (unplugging a USB device changes the list and the default input)] → The monitor coalesces them; the engine compares the wanted device with the current one before rebuilding, so a burst causes one rebuild.
 - [Disabling scrolling hides content on a very small screen] → The window is about 520 pt tall; every supported Mac screen fits it.
 - [The fix cannot be fully tested without unplugging hardware] → Default-input changes are tested with the debug harness (switching the default input to another device); unplugging and reconnecting the selected microphone is a manual QA item, as is the menu item.

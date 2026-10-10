@@ -153,6 +153,29 @@ actor AggregateCaptureEngine: CaptureEngine {
         }
     }
 
+    /// Tears the running aggregate down and builds it again for the same capture: same tap, rings,
+    /// levels, and timeline, so the tracks continue where they stopped. Used when the system audio
+    /// timeline stalls under echo-cancellation capture (fix-device-switching design D3).
+    func rebuildDevice() throws(CaptureError) {
+        guard let capture, let previous = device else { return }
+        let desiredInput = capture.configuration.sources.contains(.microphone)
+            ? Self.resolveInputDevice(selectedUID: capture.configuration.inputDeviceUID) : nil
+        tearDownDevice()
+        let built = try Self.makeAggregate(
+            candidates: Self.inputCandidates(desiredInput, sources: capture.configuration.sources),
+            tap: capture.tap, sampleRate: capture.sampleRate)
+        do throws(CaptureError) {
+            device = try Self.startIO(layout: built.layout, input: built.input, capture: capture)
+        } catch {
+            AudioHardwareDestroyAggregateDevice(built.layout.aggregate)
+            throw error
+        }
+        monitor?.watchInput(built.input)
+        if let input = built.input, input != previous.input {
+            eventHub.yield(.inputDeviceChanged(name: CoreAudioHAL.name(of: input) ?? ""))
+        }
+    }
+
     private func tearDownDevice() {
         guard let device else { return }
         AudioDeviceStop(device.aggregate, device.ioProc)
