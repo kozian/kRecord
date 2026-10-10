@@ -32,7 +32,7 @@ It records to `~/Music/kRecord/` through `RecordingSession` and the production c
 - Apple frameworks only; no packages.
 - Typed throws (`throws(CaptureError)` etc.) across the recording pipeline.
 - Tests use Swift Testing; fakes live in `kRecordTests/Fakes/`.
-- User-facing strings use `String(localized:)`. Command-line builds do not add new keys to `Localizable.xcstrings`; add keys (with `ru` translations) to the catalog by hand.
+- User-facing strings use `String(localized:)` or SwiftUI `Text("…")` literals. Command-line builds do not add new keys to `Localizable.xcstrings`; add keys (with `ru` translations, `"extractionState": "manual"`) to the catalog by hand, then run `python3 scripts/check-localization.py` after a build: it compares the strings the compiler extracted with the catalog.
 
 ## Integration points for the remaining tasks
 

@@ -98,6 +98,7 @@ final class RecordingSession {
 
     @ObservationIgnored private let dependencies: Dependencies
     @ObservationIgnored private var active: ActiveRecording?
+    @ObservationIgnored private var idleWaiters: [CheckedContinuation<Void, Never>] = []
 
     private struct ActiveRecording {
         let settings: RecordingSettings
@@ -119,6 +120,24 @@ final class RecordingSession {
 
     func dismissError() {
         lastError = nil
+    }
+
+    /// Forgets the outcome of the last save (e.g. after the user dismissed a hint about it).
+    func dismissResult() {
+        lastResult = nil
+    }
+
+    /// Returns once the session is idle, e.g. after a recording that is being saved finished.
+    func waitUntilIdle() async {
+        guard state != .idle else { return }
+        await withCheckedContinuation { idleWaiters.append($0) }
+    }
+
+    private func becomeIdle() {
+        state = .idle
+        let waiters = idleWaiters
+        idleWaiters = []
+        waiters.forEach { $0.resume() }
     }
 
     // MARK: - Start
@@ -216,7 +235,7 @@ final class RecordingSession {
         active = nil
         elapsedSeconds = 0
         levels = .silence
-        state = .idle
+        becomeIdle()
     }
 
     /// Final names for this recording's `.aac` streams; free with both `.aac` and `.m4a` extensions.
@@ -236,7 +255,7 @@ final class RecordingSession {
 
     private func fail(_ error: RecordingError) {
         lastError = error
-        state = .idle
+        becomeIdle()
     }
 
     // MARK: - Monitoring

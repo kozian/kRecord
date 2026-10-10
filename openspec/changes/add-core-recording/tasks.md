@@ -25,12 +25,12 @@
 - [x] 4.1 Implement `SettingsStore` (@Observable, UserDefaults) with all six settings (including "Save as m4a", default on) and spec defaults, producing a `RecordingSettings` snapshot; verify with unit tests for defaults and persistence round-trip using an isolated UserDefaults suite
 - [x] 4.2 Implement destination folder handling: default real `~/Music/kRecord/` path, security-scoped bookmark save/resolve, revert to default with a notice flag on failure; verify with unit tests (stale or missing bookmark → default + notice)
 - [x] 4.3 Implement `AudioDeviceCatalog` (input devices UID + name, change notifications); verify with a unit test that the list is non-empty on a Mac with a built-in microphone, and add manual checks for hot-plugging to the QA checklist
-- [ ] 4.4 Build the Settings window (`Settings` scene, `Form`: folder path + Choose… + Reveal in Finder, microphone picker, "Save as m4a" toggle, separate-files toggle, echo-cancellation toggle, menu-bar-time toggle; recording-related controls disabled while recording); verify manually and add settings items to the QA checklist
+- [x] 4.4 Build the Settings window (`Settings` scene, `Form`: folder path + Choose… + Reveal in Finder, microphone picker, "Save as m4a" toggle, separate-files toggle, echo-cancellation toggle, menu-bar-time toggle; recording-related controls disabled while recording); verify manually and add settings items to the QA checklist
 
 ## 5. Permissions
 
 - [x] 5.1 Implement `PermissionsManager`: microphone status/request via AVCaptureDevice, system audio prompt trigger (short tap + IO start), system audio status = unknown, refresh on app activation; verify with unit tests on the state mapping using a fake authorization provider
-- [ ] 5.2 Request both permissions on first launch (flag in settings) and implement "Open System Settings" deep links for the Microphone and Audio Capture privacy panes; verify manually on a fresh `tccutil reset` and add permission items to the QA checklist
+- [x] 5.2 Request both permissions on first launch (flag in settings) and implement "Open System Settings" deep links for the Microphone and Audio Capture privacy panes; verify manually on a fresh `tccutil reset` and add permission items to the QA checklist
 
 ## 6. Capture engine
 
@@ -50,23 +50,23 @@
 ## 8. Recording session
 
 - [x] 8.1 Implement `RecordingSession` state machine (idle/starting/recording/finishing/error), elapsed time `HH:MM:SS` from an injected clock, settings snapshot at start, choice of engine by the echo-cancellation setting, error mapping to localized messages; verify with unit tests on all transitions using fakes (start/stop, error during recording → idle + error, start blocked while finishing, start blocked with no permissions)
-- [ ] 8.2 Implement quit handling via `NSApplicationDelegateAdaptor` (`applicationShouldTerminate` → confirmation alert "Stop Recording and Quit" / "Cancel" → finalize → quit; quit immediately when idle); verify manually and add quit cases to the QA checklist
+- [x] 8.2 Implement quit handling via `NSApplicationDelegateAdaptor` (`applicationShouldTerminate` → confirmation alert "Stop Recording and Quit" / "Cancel" → finalize → quit; quit immediately when idle); verify manually and add quit cases to the QA checklist
 
 ## 9. Main window
 
-- [ ] 9.1 Build the main window (`Window` scene): record/stop button with saving state, elapsed time, two labeled level meters, microphone picker bound to settings and locked while recording; verify manually and add main-window items to the QA checklist
-- [ ] 9.2 Add permission warnings (missing microphone, post-recording system-silence hint, record disabled when nothing is permitted) and error display with dismiss; verify manually with permissions revoked via `tccutil reset`
-- [ ] 9.3 Ensure closing the window keeps recording and the Dock icon reopens the window; verify manually and add the check to the QA checklist
+- [x] 9.1 Build the main window (`Window` scene): record/stop button with saving state, elapsed time, two labeled level meters, microphone picker bound to settings and locked while recording; verify manually and add main-window items to the QA checklist
+- [x] 9.2 Add permission warnings (missing microphone, post-recording system-silence hint, record disabled when nothing is permitted) and error display with dismiss; verify manually with permissions revoked via `tccutil reset`
+- [x] 9.3 Ensure closing the window keeps recording and the Dock icon reopens the window; verify manually and add the check to the QA checklist
 
 ## 10. Menu bar
 
-- [ ] 10.1 Build `MenuBarExtra`: grey template icon when idle, red icon while recording, optional elapsed time from settings (applies immediately); verify manually in light and dark menu bar and add the items to the QA checklist
-- [ ] 10.2 Add menu items Start/Stop Recording (disabled while finishing), Settings… (opens and focuses the Settings window), Quit (through the quit confirmation); verify manually that state stays in sync with the main window
+- [x] 10.1 Build `MenuBarExtra`: grey template icon when idle, red icon while recording, optional elapsed time from settings (applies immediately); verify manually in light and dark menu bar and add the items to the QA checklist
+- [x] 10.2 Add menu items Start/Stop Recording (disabled while finishing), Settings… (opens and focuses the Settings window), Quit (through the quit confirmation); verify manually that state stays in sync with the main window
 
 ## 11. Localization and integration
 
-- [ ] 11.1 Translate all strings in `Localizable.xcstrings` and `InfoPlist.xcstrings` to Russian; verify that no strings are untranslated in the catalog and check the UI with `-AppleLanguages (ru)` and `(de)` (English fallback); add localization items to the QA checklist
-- [ ] 11.2 Review `docs/manual-qa-checklist.md` against every spec scenario that unit tests do not cover and fill gaps; verify each spec in `specs/` maps to at least one automated test or checklist item
+- [x] 11.1 Translate all strings in `Localizable.xcstrings` and `InfoPlist.xcstrings` to Russian; verify that no strings are untranslated in the catalog and check the UI with `-AppleLanguages (ru)` and `(de)` (English fallback); add localization items to the QA checklist
+- [x] 11.2 Review `docs/manual-qa-checklist.md` against every spec scenario that unit tests do not cover and fill gaps; verify each spec in `specs/` maps to at least one automated test or checklist item
 - [ ] 11.3 Run the full manual QA checklist on an M1-class Mac with a 60-minute meeting recording (mixed, saved as m4a) plus short recordings with "Save as m4a" off and in separate-files mode; verify all items pass and record results and the macOS version at the end of the checklist
 
 ## Workflow follow-up
