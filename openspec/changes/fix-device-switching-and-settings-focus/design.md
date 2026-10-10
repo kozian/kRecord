@@ -7,6 +7,8 @@ See proposal.md for the two bugs. Constraints from the archived design of `add-c
 - D3: the default capture path (`AggregateCaptureEngine`) follows device changes with a `DeviceMonitor` and rebuilds its aggregate, trying the resolved device, then the default input, then no microphone (silent, aligned microphone track).
 - D6: echo cancellation records the microphone through `AVAudioEngine` with voice processing and system audio through a tap-only aggregate. Voice processing must start *before* the system aggregate: started under a running aggregate it reconfigures the output device and the system track loses about 30% of its frames. Microphone buffers are placed on the system timeline by host time (`TimelineAnchor`, `MicAlignment`), which trims or pads them.
 
+The Settings window is a `Form` with `.formStyle(.grouped)`, fixed to 480 pt wide and `.fixedSize(horizontal: false, vertical: true)`. A grouped form is a scroll view; the window takes its height from the form's ideal height, which comes out slightly smaller than the laid-out content, so the window opens with a scroll bar.
+
 Today `VoiceProcessingCaptureEngine` binds a selected microphone once with `auAudioUnit.setDeviceID`, sets up the sample-rate converter once, and on `AVAudioEngineConfigurationChange` only calls `engine.start()` again on the same engine.
 
 ## Goals / Non-Goals
@@ -14,6 +16,7 @@ Today `VoiceProcessingCaptureEngine` binds a selected microphone once with `auAu
 **Goals:**
 - Echo-cancellation capture switches microphones with the same rules as the default path and keeps both tracks aligned and complete.
 - "Settings…" in the menu bar menu activates the app and shows the Settings window in front.
+- The Settings window fits its content exactly, without scrolling, and grows when the folder notice appears.
 
 **Non-Goals:**
 - Making the switch gap shorter than the voice-processing start time (about a second); prewarming is a separate change.
@@ -46,8 +49,15 @@ The menu item becomes a `Button` that calls `NSApp.activate()` and then the Swif
 - **Why:** in a `.menu`-style `MenuBarExtra` items are AppKit menu items, so gestures attached to them never run; a button action does.
 - **Alternative:** activating in the Settings view's `onAppear` — does not help when the Settings window is already open behind another app.
 
+### D6. Settings window sized to its content, scrolling off
+The form gets `.scrollDisabled(true)` and the `Settings` scene `.windowResizability(.contentSize)`, so the window height follows the form's content, including the folder notice and longer Russian text. If the grouped form's ideal height still differs from its content, the form is measured from its content instead (for example with a non-scrolling `VStack`-based layout in the same grouped style).
+- **Why:** nothing in the window needs scrolling; six settings always fit on screen.
+- **Alternative:** a larger fixed height — breaks again when the notice or translations change the content height.
+- **Verification:** the DEBUG remote control logs, for the open Settings window, whether its scroll view shows a scroller and the document height against the visible height, in English and Russian, with and without the folder notice.
+
 ## Risks / Trade-offs
 
 - [A microphone switch with echo cancellation takes about as long as a voice-processing start, so the microphone track has a gap of roughly a second] → Padded with silence and aligned; accepted for the opt-in mode.
 - [Device events arrive in bursts (unplugging a USB device changes the list and the default input)] → The monitor coalesces them; the engine compares the wanted device with the current one before rebuilding, so a burst causes one rebuild.
+- [Disabling scrolling hides content on a very small screen] → The window is about 520 pt tall; every supported Mac screen fits it.
 - [The fix cannot be fully tested without unplugging hardware] → Default-input changes are tested with the debug harness (switching the default input to another device); unplugging and reconnecting the selected microphone is a manual QA item, as is the menu item.
