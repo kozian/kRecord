@@ -10,14 +10,14 @@ The Settings window SHALL provide exactly these settings: destination folder, mi
 - **THEN** all seven settings are shown with their current values
 
 ### Requirement: Default values
-On first launch the settings SHALL have these values: destination folder `~/Music/kRecord/`, microphone "System Default", system audio source "All Audio", microphone source on, system audio source on, save as m4a on, save separate files off, echo cancellation off, show recording time in menu bar off.
+On first launch the settings SHALL have these values: destination folder `~/Music/kRecord/`, microphone "System Default", system audio source "All Audio", save as m4a on, save separate files off, echo cancellation off, show recording time in menu bar off.
 
 #### Scenario: First launch defaults
 - **WHEN** the app is launched for the first time
 - **THEN** every setting has its default value
 
 ### Requirement: Settings apply to next recording
-Changes to microphone, system audio source, the source checkboxes, save as m4a, separate files, and echo cancellation SHALL take effect from the next recording. These controls SHALL be disabled while a recording is active. The menu bar time setting SHALL take effect immediately.
+Changes to microphone, system audio source, save as m4a, separate files, and echo cancellation SHALL take effect from the next recording. These controls SHALL be disabled while a recording is active. The menu bar time setting SHALL take effect immediately.
 
 #### Scenario: Save as m4a locked during recording
 - **WHEN** a recording is active

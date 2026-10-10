@@ -20,23 +20,20 @@ When a capture permission is missing, the main window SHALL show a warning namin
 ## ADDED Requirements
 
 ### Requirement: Source checkboxes
-Each of the two level meters SHALL have a checkbox that turns its source (microphone or system audio) on or off for the next recording. The checkboxes SHALL be disabled while a recording is active or being saved.
+Each of the two level meters SHALL have a checkbox that turns its source (microphone or system audio) on or off for the next recording. Both checkboxes SHALL be on on first launch and SHALL keep their state across app restarts. They SHALL be disabled while a recording is active or being saved.
 
 #### Scenario: Turning the microphone off
 - **WHEN** the user clears the microphone checkbox and starts a recording
 - **THEN** the microphone is not recorded and its level meter stays empty
 
+#### Scenario: Checkboxes on by default
+- **WHEN** the app is launched for the first time
+- **THEN** both checkboxes are on
+
+#### Scenario: Checkbox state remembered
+- **WHEN** the user clears the system audio checkbox and restarts the app
+- **THEN** the system audio checkbox is still off
+
 #### Scenario: Checkboxes locked during recording
 - **WHEN** a recording is active
 - **THEN** neither checkbox can be changed
-
-### Requirement: System audio source picker
-The main window SHALL provide a picker for the system audio source that lists "All Audio" as its first option, followed by the running applications. A selected application that is not running SHALL be listed as "<name> (not running)". The picker SHALL be bound to the same setting as the Settings window and SHALL be disabled while a recording is active or being saved.
-
-#### Scenario: All Audio first and selected by default
-- **WHEN** the app is launched for the first time and the user opens the system audio source picker
-- **THEN** "All Audio" is the first option and is selected
-
-#### Scenario: Selected application not running
-- **WHEN** the selected application is not running
-- **THEN** the picker shows it as "<name> (not running)" and keeps it selected

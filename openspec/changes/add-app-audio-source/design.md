@@ -15,11 +15,11 @@ Constraints: macOS 15+ (user decision: no macOS 26-only API such as `CATapDescri
 **Goals:**
 - Record one application's audio, including its helper processes, with the same alignment and crash safety as "All Audio".
 - Keep recording through the application quitting and starting again.
-- Turn sources off so that an off microphone is never opened.
 
 **Non-Goals:**
 - Several applications at once, or "All Audio except …".
-- Changing the source or the checkboxes during a recording.
+- Changing the source during a recording.
+- Turning sources off (change `add-source-switches`).
 
 ## Decisions
 
@@ -39,17 +39,13 @@ For a selected application the tap is a private stereo mixdown of the applicatio
 `AggregateCaptureEngine` watches `kAudioHardwarePropertyProcessObjectList` (and `NSWorkspace` launch/terminate notifications) while a per-application tap is in use. When the set of the application's process objects changes, it updates the tap's process list by setting `kAudioTapPropertyDescription` on the existing tap; if that is not supported, it rebuilds tap and aggregate with the D3 rebuild path (same rings and timeline, short gap on both tracks). Task 1.3 decides between the two.
 - **Why:** a restarted app gets new process objects; a tap made from the old ones stays silent.
 
-### D5. Turning sources off
-`SettingsStore` stores two booleans, microphone source on and system audio source on (default both on), plus the system audio source selection. `RecordingSettings` carries them, and `RecordingSession` captures `permittedSources ∩ enabledSources`; `canStart` is false when that set is empty. Because a source that is off never reaches `CaptureConfiguration`, the existing single-source paths apply unchanged: no microphone device or voice-processing engine is opened, and in separate-files mode the writer creates only the recorded source's file.
-- **Alternative:** capture and mute — rejected by the user decision (microphone must not be opened).
-
-### D6. Capture configuration
+### D5. Capture configuration
 `CaptureConfiguration` gains the system audio source (`.all` or `.application(bundleID)`). `AggregateCaptureEngine` builds the global or per-application tap from it; `VoiceProcessingCaptureEngine` passes it to its system-only aggregate. The silent-system-audio hint keeps working; with an application selected its text names the application ("The last recording has no audio from <name>.") and still links to the privacy settings.
 
-### D7. UI
-Each level meter in the main window gets a leading checkbox; the system audio source picker sits next to the system audio meter, mirroring the microphone picker below the microphone meter, and appears in the Settings window under Recording. Both pickers and both checkboxes are disabled unless the session is idle. "All Audio" is the first picker item and the default. New strings get Russian translations ("Весь звук", "(не запущено)").
+### D6. UI
+The system audio source picker sits next to the system audio meter in the main window, mirroring the microphone picker, and appears in the Settings window under Recording. Both pickers are disabled unless the session is idle. "All Audio" is the first picker item and the default. `SettingsStore` stores the selection as bundle ID and display name (default: none = "All Audio"), and `RecordingSettings` carries it into the capture configuration. New strings get Russian translations ("Весь звук", "(не запущено)").
 
-### D8. Coordination with `fix-device-switching-and-settings-focus`
+### D7. Coordination with `fix-device-switching-and-settings-focus`
 Both changes modify the settings requirement "Available settings". Archive the fix change first; before archiving this change, refresh this delta so its "Available settings" block also carries the fix change's "Settings shown without scrolling" scenario.
 
 ## Risks / Trade-offs

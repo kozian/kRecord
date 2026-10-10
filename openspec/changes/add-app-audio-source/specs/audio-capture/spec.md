@@ -8,7 +8,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Simultaneous microphone and system audio capture
-While a recording is active, the system SHALL capture audio from the selected microphone and from the selected system audio source at the same time, for each of the two sources that is turned on and permitted.
+While a recording is active, the system SHALL capture audio from the selected microphone and from the selected system audio source at the same time.
 
 #### Scenario: Both sources recorded
 - **WHEN** the user starts a recording with both permissions granted
@@ -30,18 +30,6 @@ The system SHALL capture as system audio either the combined audio output of all
 - **WHEN** a web browser is selected and a tab in it plays audio
 - **THEN** the tab's audio is present in the system audio track
 
-### Requirement: Recording with a single available source
-If only one source is available because a permission is denied or the other source is turned off, the system SHALL record that source alone.
-
-#### Scenario: Microphone permission denied
-- **WHEN** microphone access is denied and system audio capture is permitted
-- **AND** the user starts a recording
-- **THEN** the recording contains system audio only
-
-#### Scenario: Microphone turned off
-- **WHEN** the microphone source is turned off and the user starts a recording
-- **THEN** the recording contains system audio only
-
 ## ADDED Requirements
 
 ### Requirement: Selected application not running
@@ -54,14 +42,3 @@ When the selected application is not running at the start of a recording, or qui
 #### Scenario: Application restarted during a recording
 - **WHEN** the selected application quits during a recording and is started again
 - **THEN** the recording continues throughout, and the application's audio after the restart is present in the system audio track, aligned with the microphone track
-
-### Requirement: Sources can be turned off
-Before a recording starts, the user SHALL be able to turn the microphone source and the system audio source on or off. A source that is off SHALL NOT be captured; in particular the microphone SHALL NOT be opened. A recording SHALL require at least one source that is on and permitted.
-
-#### Scenario: Microphone off
-- **WHEN** the microphone source is off and a recording is active
-- **THEN** no input device is in use by kRecord (macOS shows no microphone-in-use indicator for it)
-
-#### Scenario: Both sources off
-- **WHEN** both sources are off
-- **THEN** no recording can be started
