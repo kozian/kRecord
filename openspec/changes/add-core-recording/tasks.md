@@ -17,8 +17,8 @@
 
 - [ ] 3.1 Implement `FileNaming` (timestamp format `kRecord YYYY-MM-DD HH-mm-ss`, ` (mic)` / ` (system)` / ` (recording …)` suffixes, extension per format, collision numbering ` 2`, ` 3`…); verify with unit tests covering all spec scenarios
 - [ ] 3.2 Implement `OutputFormat` (AAC/ALAC/WAV → extension and `AVAudioFile` settings at 48 kHz, AAC ≥128 kbps stereo); verify with unit tests on generated settings
-- [ ] 3.3 Implement the lock-free SPSC ring buffer on `Synchronization.Atomic`; verify with unit tests for wraparound, overflow handling, and a concurrent producer/consumer stress test
-- [ ] 3.4 Implement level calculation (peak/RMS → normalized meter value) with an atomic snapshot; verify with unit tests on known signals (silence, full-scale sine)
+- [x] 3.3 Implement the lock-free SPSC ring buffer on `Synchronization.Atomic`; verify with unit tests for wraparound, overflow handling, and a concurrent producer/consumer stress test
+- [x] 3.4 Implement level calculation (peak/RMS → normalized meter value) with an atomic snapshot; verify with unit tests on known signals (silence, full-scale sine)
 
 ## 4. Settings
 
