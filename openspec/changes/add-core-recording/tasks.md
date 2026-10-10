@@ -48,7 +48,7 @@
 
 ## 8. Recording session
 
-- [ ] 8.1 Implement `RecordingSession` state machine (idle/starting/recording/finishing/error), elapsed time `HH:MM:SS` from an injected clock, settings snapshot at start, choice of engine by the echo-cancellation setting, error mapping to localized messages; verify with unit tests on all transitions using fakes (start/stop, error during recording → idle + error, start blocked while finishing, start blocked with no permissions)
+- [x] 8.1 Implement `RecordingSession` state machine (idle/starting/recording/finishing/error), elapsed time `HH:MM:SS` from an injected clock, settings snapshot at start, choice of engine by the echo-cancellation setting, error mapping to localized messages; verify with unit tests on all transitions using fakes (start/stop, error during recording → idle + error, start blocked while finishing, start blocked with no permissions)
 - [ ] 8.2 Implement quit handling via `NSApplicationDelegateAdaptor` (`applicationShouldTerminate` → confirmation alert "Stop Recording and Quit" / "Cancel" → finalize → quit; quit immediately when idle); verify manually and add quit cases to the QA checklist
 
 ## 9. Main window
