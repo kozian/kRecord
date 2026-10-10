@@ -22,6 +22,7 @@ See proposal.md. Today `RecordingSession.start()` captures `permittedSources` fr
 `RecordingSession` captures `permittedSources ∩ settings.enabledSources`. `canStart` and `AppModel.canToggleRecording` require that set to be non-empty. When the microphone is off, `AppModel.startRecording()` does not request microphone access either.
 - **Why:** a source that is off never reaches `CaptureConfiguration`, so the engines, writer, and finalizer need no change and the microphone is never opened.
 - **Alternative:** capture and write silence — rejected: the microphone must not be opened.
+- **Found during implementation:** with system audio off, a Mac without any input device reached the old mapping of the engine's "no input device" error to the permission error. It now reports its own error, "No microphone is connected. Connect one, or turn on system audio to record."
 
 ### D3. Checkboxes next to the meters
 Each `LabeledLevelMeter` row in the main window gets a leading checkbox (`Toggle` in checkbox style) labelled by the meter caption. Checkboxes are disabled unless the session is idle. When no permitted source is on, the record button is disabled and a short note under it says to turn on a source. New strings get Russian translations.
