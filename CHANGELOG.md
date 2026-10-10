@@ -2,6 +2,22 @@
 
 Versions follow semantic versioning; the build number is the git commit count of the release commit.
 
+## 0.2.1 — 2026-10-10
+
+### add-release-versioning
+
+- Version numbers follow semantic versioning: the marketing version (`CFBundleShortVersionString`, e.g. `0.2.0`) and a build number (`CFBundleVersion`) that only grows. The build number is the git commit count of the release commit, so each build maps to exactly one commit.
+- Both numbers live in `Config/Version.xcconfig` instead of the project file.
+- `scripts/release.sh <version>` produces a release in one step: checks for uncommitted changes, runs the tests, sets the version and build number, updates `CHANGELOG.md` from the OpenSpec changes archived since the previous release, builds and verifies the signed Release app, commits "Release <version>", tags `v<version>`, and writes `build/dist/kRecord-<version>.zip` with a SHA-256 checksum. A `--dry-run` mode does everything except the commit and tag.
+- First release: 0.2.0.
+
+### fix-device-switching-and-settings-focus
+
+- Echo-cancellation capture follows input device changes like the default capture path does: it falls back to the default input when the selected microphone disappears, uses the selected microphone again when it comes back, follows the macOS default input when "System Default" is selected, and keeps the microphone track aligned with system audio across the switch. A device with another sample rate is converted correctly after the switch.
+- "Settings…" in the menu bar menu brings the Settings window to the front, also when another app is active.
+- The Settings window is sized to its content and does not scroll, also when the folder notice is shown and in Russian.
+- In the main window, a colon follows the microphone symbol before the device picker, so the symbol reads as the picker's label (presentation only; the main-window spec does not describe the symbol).
+- The audio-capture, menu-bar, and settings specs state these cases explicitly as scenarios.
 ## 0.2.0 — 2026-10-10
 
 ### add-core-recording
