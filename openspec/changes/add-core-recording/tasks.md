@@ -68,6 +68,7 @@
 - [x] 11.1 Translate all strings in `Localizable.xcstrings` and `InfoPlist.xcstrings` to Russian; verify that no strings are untranslated in the catalog and check the UI with `-AppleLanguages (ru)` and `(de)` (English fallback); add localization items to the QA checklist
 - [x] 11.2 Review `docs/manual-qa-checklist.md` against every spec scenario that unit tests do not cover and fill gaps; verify each spec in `specs/` maps to at least one automated test or checklist item
 - [x] 11.3 Run the full manual QA checklist on an M1-class Mac with a 60-minute meeting recording (mixed, saved as m4a) plus short recordings with "Save as m4a" off and in separate-files mode; verify all items pass and record results and the macOS version at the end of the checklist
+- [x] 11.4 Make the post-recording "no system audio" hint unobtrusive: a small secondary note under the microphone picker with a link to System Settings and a dismiss button instead of a coloured banner (it also appears when nothing played, which helps catch other causes of missing system audio); verify with the view snapshot in English and Russian
 
 ## Workflow follow-up
 

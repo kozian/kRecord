@@ -28,6 +28,8 @@ struct MainWindowView: View {
                                  isLocked: model.recordingSettingsAreLocked)
                     .labelsHidden()
             }
+
+            silentSystemAudioNote
         }
         .padding(20)
         .frame(width: 360)
@@ -81,11 +83,34 @@ struct MainWindowView: View {
                    message: Text("Microphone access is off, so your voice won't be recorded."),
                    actionTitle: "Open System Settings", action: { model.permissions.openSettings(.microphone) })
         }
+    }
+
+    /// A quiet note, not a banner: an all-silent system track also happens when nothing played,
+    /// so this only points at the permission as one possible cause (permissions spec).
+    @ViewBuilder
+    private var silentSystemAudioNote: some View {
         if session.lastResult?.systemAudioSilent == true {
-            Banner(systemImage: "speaker.slash.fill", tint: .yellow,
-                   message: Text("No system audio was captured. It may be blocked in Privacy & Security settings."),
-                   actionTitle: "Open System Settings", action: { model.permissions.openSettings(.systemAudio) },
-                   onDismiss: { session.dismissResult() })
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Image(systemName: "speaker.slash")
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("The last recording has no system audio. It may be blocked in privacy settings.")
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Open System Settings") { model.permissions.openSettings(.systemAudio) }
+                        .buttonStyle(.link)
+                        .foregroundStyle(Color.accentColor)
+                }
+                Spacer(minLength: 0)
+                Button {
+                    session.dismissResult()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Dismiss"))
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 }

@@ -122,6 +122,61 @@
         }
       }
     },
+    "kRecord" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kRecord"
+          }
+        }
+      }
+    },
+    "kRecord can't record: microphone and system audio access are both off." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kRecord не может записывать: доступ к микрофону и системному звуку выключен."
+          }
+        }
+      }
+    },
+    "kRecord couldn't get lasting access to that folder. Choose another one." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kRecord не смог получить постоянный доступ к этой папке. Выберите другую."
+          }
+        }
+      }
+    },
+    "kRecord has no permission to record the microphone or system audio." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "У kRecord нет разрешения записывать микрофон или системный звук."
+          }
+        }
+      }
+    },
+    "kRecord, recording" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kRecord, идёт запись"
+          }
+        }
+      }
+    },
     "Menu Bar" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -162,17 +217,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Уровень микрофона"
-          }
-        }
-      }
-    },
-    "No system audio was captured. It may be blocked in Privacy & Security settings." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Системный звук не записан. Возможно, доступ к нему закрыт в настройках конфиденциальности и безопасности."
           }
         }
       }
@@ -408,17 +452,6 @@
         }
       }
     },
-    "System Default" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Системный по умолчанию"
-          }
-        }
-      }
-    },
     "System audio level" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -426,6 +459,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Уровень системного звука"
+          }
+        }
+      }
+    },
+    "System Default" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системный по умолчанию"
           }
         }
       }
@@ -448,6 +492,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Эту папку нельзя использовать"
+          }
+        }
+      }
+    },
+    "The last recording has no system audio. It may be blocked in privacy settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В последней записи нет системного звука. Возможно, он заблокирован в настройках конфиденциальности."
           }
         }
       }
@@ -481,61 +536,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Запись будет сохранена до выхода из kRecord."
-          }
-        }
-      }
-    },
-    "kRecord" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kRecord"
-          }
-        }
-      }
-    },
-    "kRecord can't record: microphone and system audio access are both off." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kRecord не может записывать: доступ к микрофону и системному звуку выключен."
-          }
-        }
-      }
-    },
-    "kRecord couldn't get lasting access to that folder. Choose another one." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kRecord не смог получить постоянный доступ к этой папке. Выберите другую."
-          }
-        }
-      }
-    },
-    "kRecord has no permission to record the microphone or system audio." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "У kRecord нет разрешения записывать микрофон или системный звук."
-          }
-        }
-      }
-    },
-    "kRecord, recording" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kRecord, идёт запись"
           }
         }
       }
