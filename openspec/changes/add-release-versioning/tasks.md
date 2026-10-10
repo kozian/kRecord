@@ -12,4 +12,4 @@
 
 ## 3. First release
 
-- [ ] 3.1 Archive completed OpenSpec changes, then release 0.2.0 with the script; verify the tag `v0.2.0`, the release commit, `CHANGELOG.md`, `build/dist/kRecord-0.2.0.zip` with a matching SHA-256, and that the unpacked app reports 0.2.0 with the commit-count build number and a valid signature
+- [x] 3.1 Archive completed OpenSpec changes, then release 0.2.0 with the script; verify the tag `v0.2.0`, the release commit, `CHANGELOG.md`, `build/dist/kRecord-0.2.0.zip` with a matching SHA-256, and that the unpacked app reports 0.2.0 with the commit-count build number and a valid signature
