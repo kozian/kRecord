@@ -25,23 +25,23 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 
 ## Audio capture
 
-- [ ] **Both sources, clap test.** Play music through the speakers, start a 60 s recording with separate files, clap twice near the microphone at the start and twice at the end. Open both files in an audio editor at position zero: voice and music are present, and the claps (and the music heard through the microphone) line up with the system track equally well at the start and at the end.
-- [ ] **Specific microphone.** With two input devices connected, select the one that is not the macOS default in the microphone picker and record: the microphone track comes from the selected device (speak into it and not into the default one), even after changing the default input.
+- [x] **Both sources, clap test.** Play music through the speakers, start a 60 s recording with separate files, clap twice near the microphone at the start and twice at the end. Open both files in an audio editor at position zero: voice and music are present, and the claps (and the music heard through the microphone) line up with the system track equally well at the start and at the end.
+- [x] **Specific microphone.** With two input devices connected, select the one that is not the macOS default in the microphone picker and record: the microphone track comes from the selected device (speak into it and not into the default one), even after changing the default input.
 - [ ] **60-minute sync.** Record 60 minutes with both sources in separate-files mode with a clap (or a click track played through the speakers) at the start and at the end; in an audio editor the offset between the tracks is the same at the start and the end. (Run as part of the long meeting recording of the final pass.)
-- [ ] **Start in silence.** With no app playing audio for at least a minute, start a recording, wait 10 s, then play audio. The file starts at the moment Record was pressed (the first 10 s contain the microphone), not when the audio started.
-- [ ] **Long silence.** Record 2 minutes, playing audio only during the first and last 10 s. The file is 2 minutes long without gaps.
-- [ ] **Two apps.** Play audio in two apps at once (e.g. Music and a browser video): both are audible in the system track.
-- [ ] **Stereo image.** Play a test file panned hard left: in the system track (separate-files mode) it is in the left channel only.
-- [ ] **Multichannel interface.** With a multichannel audio interface as the input, the microphone track is mono and contains the interface's first input.
+- [x] **Start in silence.** With no app playing audio for at least a minute, start a recording, wait 10 s, then play audio. The file starts at the moment Record was pressed (the first 10 s contain the microphone), not when the audio started.
+- [x] **Long silence.** Record 2 minutes, playing audio only during the first and last 10 s. The file is 2 minutes long without gaps.
+- [x] **Two apps.** Play audio in two apps at once (e.g. Music and a browser video): both are audible in the system track.
+- [x] **Stereo image.** Play a test file panned hard left: in the system track (separate-files mode) it is in the left channel only.
+- [x] **Multichannel interface.** With a multichannel audio interface as the input, the microphone track is mono and contains the interface's first input.
 - [ ] **Default input changes.** With the microphone set to "System Default", start recording and switch the input device in System Settings → Sound → Input. The recording continues and the new device is recorded after a gap of well under a second.
-- [ ] **Selected microphone unplugged.** Select a USB microphone explicitly, start recording, unplug it, then plug it back in. The recording continues throughout: after unplugging, the default input is recorded (or silence on a Mac without another input); after plugging back in, the USB microphone is recorded again. The selection is still the USB microphone afterwards.
-- [ ] **Selected microphone missing at start.** With the selected USB microphone unplugged, start a recording: it starts with the default input.
-- [ ] **Output device changes.** During a recording, connect headphones (or switch output in System Settings) and play audio: system audio is still recorded, without a gap longer than a second.
-- [ ] **Aggregate device as input.** Create an aggregate device in Audio MIDI Setup, set it as the input, and record: the recording starts (falling back to the default input or to system audio only) instead of failing.
-- [ ] **Echo cancellation.** Enable echo cancellation, play speech through the built-in speakers (no headphones), and record 30 s in separate-files mode without speaking. Repeat with echo cancellation off. The microphone track with echo cancellation contains clearly less of the played speech. Note: other audio is played and recorded about 8 dB quieter while echo cancellation is on (expected, design D6).
-- [ ] **Echo cancellation alignment.** With echo cancellation on, record separate files while speaking and playing music; in an audio editor the voice in both tracks (direct and via speakers) lines up to within about 10 ms. Repeat with a second microphone model if available.
-- [ ] **Echo cancellation keeps your voice.** With echo cancellation on and audio playing through the speakers, speak normally: your voice is clearly present in the microphone track.
-- [ ] **Level meters.** While recording, speaking moves only the microphone meter, and playing audio moves only the system audio meter.
+- [x] **Selected microphone unplugged.** Select a USB microphone explicitly, start recording, unplug it, then plug it back in. The recording continues throughout: after unplugging, the default input is recorded (or silence on a Mac without another input); after plugging back in, the USB microphone is recorded again. The selection is still the USB microphone afterwards.
+- [x] **Selected microphone missing at start.** With the selected USB microphone unplugged, start a recording: it starts with the default input.
+- [x] **Output device changes.** During a recording, connect headphones (or switch output in System Settings) and play audio: system audio is still recorded, without a gap longer than a second.
+- [x] **Aggregate device as input.** Create an aggregate device in Audio MIDI Setup, set it as the input, and record: the recording starts (falling back to the default input or to system audio only) instead of failing.
+- [x] **Echo cancellation.** Enable echo cancellation, play speech through the built-in speakers (no headphones), and record 30 s in separate-files mode without speaking. Repeat with echo cancellation off. The microphone track with echo cancellation contains clearly less of the played speech. Note: other audio is played and recorded about 8 dB quieter while echo cancellation is on (expected, design D6).
+- [x] **Echo cancellation alignment.** With echo cancellation on, record separate files while speaking and playing music; in an audio editor the voice in both tracks (direct and via speakers) lines up to within about 10 ms. Repeat with a second microphone model if available.
+- [x] **Echo cancellation keeps your voice.** With echo cancellation on and audio playing through the speakers, speak normally: your voice is clearly present in the microphone track.
+- [x] **Level meters.** While recording, speaking moves only the microphone meter, and playing audio moves only the system audio meter.
 
 ## Recording output
 
@@ -106,3 +106,4 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 
 | Date | macOS version | Mac model | Tester | Result | Notes |
 |------|---------------|-----------|--------|--------|-------|
+| 2026-10-10 | 27.0 | Mac mini (M4 Pro) | project owner | Partial pass, accepted | Audio capture checked (15 of 17; 60-minute sync and default-input switch not run, the switch was verified with the debug harness). Other sections were not run item by item; the app behaved as specified in the edge cases tried. Problems found later are fixed in separate changes. |
