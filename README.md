@@ -47,4 +47,4 @@ Hardware-dependent behavior is checked by hand with [docs/manual-qa-checklist.md
 
 ## License
 
-[MIT](LICENSE) © 2026 Kuznetsov Konstantin
+[MIT](LICENSE) © 2026 Konstantin Kuznetsov
