@@ -22,16 +22,21 @@ struct LevelMeter: View {
     }
 }
 
-/// A caption above a level bar.
-struct LabeledLevelMeter: View {
+/// A level bar with a checkbox above it that turns its source on or off for the next recording.
+struct SourceLevelMeter: View {
     let title: LocalizedStringKey
+    @Binding var isOn: Bool
+    let isLocked: Bool
     let value: Float
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
+            Toggle(title, isOn: $isOn)
+                .toggleStyle(.checkbox)
+                .font(.caption)
+                .disabled(isLocked)
             LevelMeter(value: value)
+                .opacity(isOn ? 1 : 0.4)
         }
-        .accessibilityElement(children: .combine)
     }
 }

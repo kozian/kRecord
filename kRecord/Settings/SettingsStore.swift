@@ -22,6 +22,8 @@ final class SettingsStore {
         static let separateFiles = "separateFiles"
         static let echoCancellation = "echoCancellation"
         static let showTimeInMenuBar = "showTimeInMenuBar"
+        static let recordsMicrophone = "recordsMicrophone"
+        static let recordsSystemAudio = "recordsSystemAudio"
         static let requestedPermissions = "requestedPermissions"
     }
 
@@ -154,6 +156,33 @@ final class SettingsStore {
         set { withMutation(keyPath: \.showTimeInMenuBar) { defaults.set(newValue, forKey: Key.showTimeInMenuBar) } }
     }
 
+    // MARK: Sources
+
+    /// The microphone source is on (main window checkbox). Default on.
+    var recordsMicrophone: Bool {
+        get {
+            access(keyPath: \.recordsMicrophone)
+            return defaults.object(forKey: Key.recordsMicrophone) as? Bool ?? true
+        }
+        set { withMutation(keyPath: \.recordsMicrophone) { defaults.set(newValue, forKey: Key.recordsMicrophone) } }
+    }
+
+    /// The system audio source is on (main window checkbox). Default on.
+    var recordsSystemAudio: Bool {
+        get {
+            access(keyPath: \.recordsSystemAudio)
+            return defaults.object(forKey: Key.recordsSystemAudio) as? Bool ?? true
+        }
+        set { withMutation(keyPath: \.recordsSystemAudio) { defaults.set(newValue, forKey: Key.recordsSystemAudio) } }
+    }
+
+    var enabledSources: CaptureSources {
+        var sources: CaptureSources = []
+        if recordsMicrophone { sources.insert(.microphone) }
+        if recordsSystemAudio { sources.insert(.system) }
+        return sources
+    }
+
     // MARK: First launch
 
     /// Whether the permission prompts were already requested (permissions spec: first launch only).
@@ -170,6 +199,7 @@ final class SettingsStore {
     /// What the next recording uses (settings spec: changes apply to the next recording).
     var recordingSettings: RecordingSettings {
         RecordingSettings(destinationFolder: destinationFolder, inputDeviceUID: inputDeviceUID,
-                          saveAsM4A: saveAsM4A, separateFiles: separateFiles, echoCancellation: echoCancellation)
+                          saveAsM4A: saveAsM4A, separateFiles: separateFiles, echoCancellation: echoCancellation,
+                          enabledSources: enabledSources)
     }
 }

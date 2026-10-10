@@ -135,6 +135,59 @@ final class RecordingSessionTests {
         #expect(engine.configurations.isEmpty)
     }
 
+    // MARK: Source switches
+
+    @Test func microphoneOffRecordsSystemOnly() async {
+        settings.enabledSources = .system
+        await session.start()
+        #expect(engine.configurations.first?.sources == .system)
+        await session.stop()
+    }
+
+    @Test func systemAudioOffRecordsMicrophoneOnly() async {
+        settings.enabledSources = .microphone
+        await session.start()
+        #expect(engine.configurations.first?.sources == .microphone)
+        await session.stop()
+    }
+
+    @Test func bothSourcesOffCannotStart() async {
+        settings.enabledSources = []
+        #expect(!session.canStart)
+        await session.start()
+        #expect(session.state == .idle)
+        #expect(session.lastError == .noSourceEnabled)
+        #expect(engine.configurations.isEmpty)
+    }
+
+    @Test func microphoneOnlyWithoutInputDeviceSaysSo() async {
+        settings.enabledSources = .microphone
+        engine.failNextStart(with: .noInputDevice)
+        await session.start()
+        #expect(session.state == .idle)
+        #expect(session.lastError == .noMicrophone)
+    }
+
+    @Test func switchedOffSourceIntersectsWithPermissions() async {
+        // Microphone denied and system audio switched off: nothing left to record.
+        permitted = .system
+        settings.enabledSources = .microphone
+        #expect(session.sourcesToRecord.isEmpty)
+        #expect(!session.canStart)
+        await session.start()
+        #expect(session.lastError == .noPermission)
+    }
+
+    @Test func separateFilesWithMicrophoneOffWriteOneStream() async {
+        settings.separateFiles = true
+        settings.enabledSources = .system
+        await session.start()
+        let base = FileNaming.baseName(for: clock.date)
+        #expect(writer.plan == .separate(microphone: nil,
+                                         system: settings.destinationFolder.appending(path: "\(base) (system).aac")))
+        await session.stop()
+    }
+
     @Test func recordsOnlyPermittedSources() async {
         permitted = .system
         await session.start()
@@ -254,7 +307,7 @@ final class RecordingSessionTests {
     }
 
     @Test func everyErrorHasAMessage() {
-        let errors: [RecordingError] = [.noPermission, .folderNotWritable, .folderUnavailable, .diskFull,
+        let errors: [RecordingError] = [.noPermission, .noSourceEnabled, .noMicrophone, .folderNotWritable, .folderUnavailable, .diskFull,
                                         .captureFailed, .writeFailed, .saveFailed]
         #expect(Set(errors.map(\.message)).count == errors.count)
     }

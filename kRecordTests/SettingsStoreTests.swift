@@ -31,6 +31,23 @@ struct SettingsStoreTests {
         #expect(!store.showTimeInMenuBar)
         #expect(!store.hasRequestedPermissions)
         #expect(!store.showsFolderUnavailableNotice)
+        #expect(store.recordsMicrophone)
+        #expect(store.recordsSystemAudio)
+        #expect(store.enabledSources == .all)
+    }
+
+    @Test func sourceSwitchesPersistAndReachTheSnapshot() {
+        let first = makeStore()
+        first.recordsMicrophone = false
+        #expect(first.enabledSources == .system)
+        #expect(first.recordingSettings.enabledSources == .system)
+
+        let second = makeStore()
+        #expect(!second.recordsMicrophone)
+        #expect(second.recordsSystemAudio)
+        second.recordsSystemAudio = false
+        #expect(second.enabledSources.isEmpty)
+        #expect(!makeStore().recordsSystemAudio)
     }
 
     @Test func realDefaultFolderIsMusicKRecord() {

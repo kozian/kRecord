@@ -70,7 +70,7 @@ final class AppModel {
     /// The record/stop control is usable: stopping always is; starting needs a permitted source.
     var canToggleRecording: Bool {
         switch session.state {
-        case .idle: permissions.canRecord
+        case .idle: session.canStart
         case .recording: true
         case .starting, .finishing: false
         }
@@ -86,8 +86,11 @@ final class AppModel {
 
     func startRecording() async {
         guard session.state == .idle else { return }
-        // Asks only if the microphone was never decided, e.g. if the first-launch prompt was skipped.
-        await permissions.requestMicrophoneIfNeeded()
+        // Asks only if the microphone was never decided, e.g. if the first-launch prompt was skipped,
+        // and not at all when the microphone source is off.
+        if settings.recordsMicrophone {
+            await permissions.requestMicrophoneIfNeeded()
+        }
         await session.start()
     }
 

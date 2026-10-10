@@ -210,13 +210,13 @@
         }
       }
     },
-    "Microphone level" : {
+    "No microphone is connected. Connect one, or turn on system audio to record." : {
       "extractionState" : "manual",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Уровень микрофона"
+            "value" : "Микрофон не подключён. Подключите его или включите системный звук, чтобы записывать."
           }
         }
       }
@@ -261,6 +261,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Записать"
+          }
+        }
+      }
+    },
+    "Record microphone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записывать микрофон"
+          }
+        }
+      }
+    },
+    "Record system audio" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записывать системный звук"
           }
         }
       }
@@ -452,17 +474,6 @@
         }
       }
     },
-    "System audio level" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Уровень системного звука"
-          }
-        }
-      }
-    },
     "System Default" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -536,6 +547,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Запись будет сохранена до выхода из kRecord."
+          }
+        }
+      }
+    },
+    "Turn on the microphone or system audio to record." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включите микрофон или системный звук, чтобы записывать."
           }
         }
       }

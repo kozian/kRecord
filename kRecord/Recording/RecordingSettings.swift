@@ -10,6 +10,8 @@ struct RecordingSettings: Equatable, Sendable {
     var saveAsM4A: Bool
     var separateFiles: Bool
     var echoCancellation: Bool
+    /// Sources the user turned on; a source that is off is not captured at all.
+    var enabledSources: CaptureSources = .all
 
     static let defaults = RecordingSettings(
         destinationFolder: HomeDirectory.defaultRecordingsFolder,

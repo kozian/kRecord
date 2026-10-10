@@ -4,6 +4,10 @@ import Observation
 /// A user-facing reason a recording could not start or stopped early (recording-session spec).
 enum RecordingError: Error, Equatable, Sendable {
     case noPermission
+    /// Both sources are turned off.
+    case noSourceEnabled
+    /// Only the microphone is to be recorded, but no input device is connected.
+    case noMicrophone
     case folderNotWritable
     case folderUnavailable
     case diskFull
@@ -16,6 +20,10 @@ enum RecordingError: Error, Equatable, Sendable {
         switch self {
         case .noPermission:
             String(localized: "kRecord has no permission to record the microphone or system audio.")
+        case .noSourceEnabled:
+            String(localized: "Turn on the microphone or system audio to record.")
+        case .noMicrophone:
+            String(localized: "No microphone is connected. Connect one, or turn on system audio to record.")
         case .folderNotWritable:
             String(localized: "The destination folder can't be written to. Choose another folder in Settings.")
         case .folderUnavailable:
@@ -93,7 +101,12 @@ final class RecordingSession {
     private(set) var lastResult: FinalizationResult?
 
     var isRecording: Bool { state == .recording }
-    var canStart: Bool { state == .idle && !dependencies.permittedSources().isEmpty }
+    var canStart: Bool { state == .idle && !sourcesToRecord.isEmpty }
+
+    /// What the next recording captures: the sources that are both turned on and permitted.
+    var sourcesToRecord: CaptureSources {
+        dependencies.permittedSources().intersection(dependencies.settings().enabledSources)
+    }
     var formattedElapsedTime: String { Self.format(elapsedSeconds: elapsedSeconds) }
 
     @ObservationIgnored private let dependencies: Dependencies
@@ -145,7 +158,12 @@ final class RecordingSession {
     /// Starts a recording. Ignored unless idle (e.g. while the previous one is being saved).
     func start() async {
         guard state == .idle else { return }
-        let sources = dependencies.permittedSources()
+        let settingsAtStart = dependencies.settings()
+        guard !settingsAtStart.enabledSources.isEmpty else {
+            lastError = .noSourceEnabled
+            return
+        }
+        let sources = dependencies.permittedSources().intersection(settingsAtStart.enabledSources)
         guard !sources.isEmpty else {
             lastError = .noPermission
             return
@@ -154,7 +172,7 @@ final class RecordingSession {
         lastResult = nil
         state = .starting
 
-        let settings = dependencies.settings()
+        let settings = settingsAtStart
         do {
             try dependencies.storage.prepare(settings.destinationFolder)
         } catch {
@@ -169,7 +187,11 @@ final class RecordingSession {
             streams = try await engine.start(
                 CaptureConfiguration(inputDeviceUID: settings.inputDeviceUID, sources: sources))
         } catch {
-            fail(error == .noSources || error == .noInputDevice ? .noPermission : .captureFailed)
+            switch error {
+            case .noSources: fail(.noPermission)
+            case .noInputDevice: fail(.noMicrophone)
+            default: fail(.captureFailed)
+            }
             return
         }
         let startUptime = dependencies.clock.uptime()

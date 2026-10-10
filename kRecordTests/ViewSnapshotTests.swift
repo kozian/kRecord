@@ -109,6 +109,22 @@ struct ViewSnapshotTests {
         try render(MainWindowView(model: app.model), name: "main-error")
     }
 
+    @Test func mainWindowSourceSwitches() async throws {
+        let app = TestApp()
+        app.settings.recordsMicrophone = false
+        try render(MainWindowView(model: app.model), name: "main-microphone-off")
+        app.settings.recordsSystemAudio = false
+        try render(MainWindowView(model: app.model), name: "main-both-off")
+        #expect(!app.model.canToggleRecording)
+
+        app.settings.recordsSystemAudio = true
+        await app.model.startRecording()
+        app.engine.pump(frames: 4_800)
+        app.session.refresh()
+        try render(MainWindowView(model: app.model), name: "main-microphone-off-recording")
+        await app.session.stop()
+    }
+
     @Test func mainWindowUnavailableMicrophoneSelected() throws {
         let app = TestApp()
         app.settings.selectMicrophone(InputDevice(uid: "gone", name: "Podcast Mic"))

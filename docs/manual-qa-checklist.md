@@ -59,6 +59,11 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 - [ ] **Quit while idle.** Press ⌘Q (and, separately, choose Quit from the menu bar menu): the app quits at once, without a confirmation.
 - [ ] **Quit during a recording.** Record, then press ⌘Q: an alert "Stop recording and quit?" appears with "Stop Recording and Quit" and "Cancel". Cancel keeps the app open and the recording running (the timer keeps counting). Repeat and choose "Stop Recording and Quit": the recording is saved as a complete file and the app quits.
 - [ ] **Quit while saving.** Stop a long recording and quit while "Saving…" is shown: the app quits only after the file is saved, without asking.
+- [ ] **Microphone off.** Clear "Record microphone" in the main window and record while speaking and playing audio: macOS shows no microphone-in-use indicator for kRecord, the microphone meter stays empty, and the recording contains only system audio (in separate-files mode only the `(system)` file is created).
+- [ ] **System audio off.** Clear "Record system audio" and record while playing audio: only the microphone is recorded (in separate-files mode only the `(mic)` file is created).
+- [ ] **Both off.** Clear both checkboxes: the record button is disabled with the note "Turn on the microphone or system audio to record.", and "Start Recording" in the menu bar menu is disabled.
+- [ ] **Switches remembered and locked.** Clear one checkbox, quit, and relaunch: it is still cleared. During a recording both checkboxes are disabled.
+- [ ] **Microphone only, nothing connected.** On a Mac without any input device, turn system audio off and press Record: an error says no microphone is connected.
 - [ ] **Shared state.** Start a recording from the menu bar menu: the main window shows it as recording with a running timer. Stop it from the main window: the menu bar icon returns to grey.
 - [ ] **Start blocked while saving.** While a recording is being saved, neither the main window button nor the menu item starts a new one.
 

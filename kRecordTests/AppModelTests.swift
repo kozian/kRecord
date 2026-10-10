@@ -57,6 +57,21 @@ struct AppModelTests {
         #expect(app.engine.configurations.first?.sources == .system)
     }
 
+    @Test func microphoneOffIsNotRequestedOrRecorded() async {
+        let app = TestApp(microphone: .notDetermined)
+        app.settings.recordsMicrophone = false
+        await app.model.startRecording()
+        #expect(app.provider.state.withLock { $0.microphoneRequests } == 0)
+        #expect(app.engine.configurations.first?.sources == .system)
+    }
+
+    @Test func bothSourcesOffDisableTheControl() {
+        let app = TestApp()
+        app.settings.recordsMicrophone = false
+        app.settings.recordsSystemAudio = false
+        #expect(!app.model.canToggleRecording)
+    }
+
     // MARK: First launch
 
     @Test func firstLaunchRequestsPermissionsOnce() async {

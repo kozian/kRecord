@@ -22,6 +22,10 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Echo cancellation disabled by default | `SettingsStoreTests.firstLaunchDefaults` |
 | Levels reflect activity | `AudioLevelsTests`, `FakeCaptureEngineTests`; QA [Audio capture] level meters |
 | Microphone permission denied | `PermissionsManagerTests.permittedSourcesFollowStatuses`, `AppModelTests.startRecordsOnlySystemAudioWhenMicrophoneIsDenied`; QA [Permissions] |
+| Microphone turned off | `RecordingSessionTests.microphoneOffRecordsSystemOnly`, `AppModelTests.microphoneOffIsNotRequestedOrRecorded`; QA [Recording session] Microphone off |
+| Microphone off (not opened) | `AppModelTests.microphoneOffIsNotRequestedOrRecorded` (no microphone in the capture configuration); QA [Recording session] Microphone off |
+| System audio off | `RecordingSessionTests.systemAudioOffRecordsMicrophoneOnly`; QA [Recording session] System audio off |
+| Both sources off | `RecordingSessionTests.bothSourcesOffCannotStart`, `AppModelTests.bothSourcesOffDisableTheControl`; QA [Recording session] Both off |
 
 ## recording-output
 
@@ -31,6 +35,7 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Microphone centered | `RecordingWriterTests.mixedMicrophoneIsCenteredAtMinusThreeDecibels`, `mixValuesAreClamped` |
 | Separate files produced | `RecordingWriterTests.separateFilesKeepSourcesApart`; harness |
 | Separate files are aligned | harness (separate tracks 7.9 ms apart); QA [Recording output] Separate files |
+| Only one source recorded | `RecordingSessionTests.separateFilesWithMicrophoneOffWriteOneStream`; harness (microphone off → only the `(system)` file); QA [Recording session] Microphone off |
 | Default format | `FinalizerTests.repackagesWithoutReencoding`, `saveAsM4AReplacesStreams`; `AACEncodingTests` |
 | Save as m4a off | `FinalizerTests.withoutM4AStreamsAreFinal`; harness; QA [Recording output] |
 | Saving as m4a does not re-encode | `FinalizerTests.repackagesWithoutReencoding` (identical packets, exact duration) |
@@ -72,6 +77,10 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Microphone permission missing | `ViewSnapshotTests.mainWindowMicrophoneDenied`; QA [Main window] |
 | Both permissions missing | `AppModelTests.cannotStartWhenNothingIsPermitted`; `ViewSnapshotTests.mainWindowNothingPermitted` (cannot be provoked by hand: the system audio status is unknown) |
 | Error shown | `ViewSnapshotTests.mainWindowError`; QA [Main window] Error display |
+| No source turned on | `AppModelTests.bothSourcesOffDisableTheControl`, `ViewSnapshotTests.mainWindowSourceSwitches`; QA [Recording session] Both off |
+| Turning the microphone off | `ViewSnapshotTests.mainWindowSourceSwitches` (empty microphone meter while recording); QA [Recording session] Microphone off |
+| Checkboxes on by default / state remembered | `SettingsStoreTests.firstLaunchDefaults`, `sourceSwitchesPersistAndReachTheSnapshot`; QA [Recording session] Switches remembered and locked |
+| Checkboxes locked during recording | `ViewSnapshotTests.mainWindowSourceSwitches` (disabled checkboxes while recording); QA [Recording session] Switches remembered and locked |
 
 ## menu-bar
 

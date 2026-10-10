@@ -16,11 +16,22 @@ struct MainWindowView: View {
                 .monospacedDigit()
                 .accessibilityLabel(Text("Elapsed time"))
 
-            recordButton
+            VStack(spacing: 6) {
+                recordButton
+                if session.state == .idle, model.settings.enabledSources.isEmpty {
+                    Text("Turn on the microphone or system audio to record.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
 
             VStack(spacing: 10) {
-                LabeledLevelMeter(title: "Microphone level", value: session.levels.microphone.meterValue())
-                LabeledLevelMeter(title: "System audio level", value: session.levels.system.meterValue())
+                SourceLevelMeter(title: "Record microphone", isOn: sourceBinding(\.recordsMicrophone),
+                                 isLocked: model.recordingSettingsAreLocked,
+                                 value: session.levels.microphone.meterValue())
+                SourceLevelMeter(title: "Record system audio", isOn: sourceBinding(\.recordsSystemAudio),
+                                 isLocked: model.recordingSettingsAreLocked,
+                                 value: session.levels.system.meterValue())
             }
 
             LabeledContent("Microphone") {
@@ -33,6 +44,10 @@ struct MainWindowView: View {
         }
         .padding(20)
         .frame(width: 360)
+    }
+
+    private func sourceBinding(_ keyPath: ReferenceWritableKeyPath<SettingsStore, Bool>) -> Binding<Bool> {
+        Binding(get: { model.settings[keyPath: keyPath] }, set: { model.settings[keyPath: keyPath] = $0 })
     }
 
     // MARK: Record button
