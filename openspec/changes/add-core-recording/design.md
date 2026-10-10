@@ -50,7 +50,7 @@ The IOProc copies frames into a preallocated lock-free single-producer/single-co
 While recording, write one 16-bit 48 kHz PCM CAF file per source into the destination folder, named `kRecord <timestamp> (recording mic).caf` and `kRecord <timestamp> (recording system).caf`. The CAF header uses an "unknown data size" so a truncated file stays playable. On stop, a `Finalizer` produces the requested output:
 - mixed mode: read both CAFs, mix (system stereo; mic duplicated to L/R; each source at −3 dB, i.e. a gain of 0.707; samples clamped to [−1, 1]), and encode to the target format;
 - separate mode: encode each CAF to the target format (mic mono, system stereo);
-then delete the intermediate files. Encoding uses `AVAudioFile` with AAC (128 kbps stereo / 64 kbps mono), ALAC 16-bit, or WAV 16-bit settings.
+then delete the intermediate files. Encoding uses `AVAudioFile` with AAC (128 kbps for both stereo and mono, as the spec requires at least 128 kbps), ALAC 16-bit, or WAV 16-bit settings.
 - **Why:** CAF/PCM survives crashes; an `.m4a` written directly lacks its index (moov) until it is closed. Conversion at stop takes seconds for an hour of audio on M1.
 - **Trade-off:** temporary disk usage of about 1 GB per hour (3 channels × 16-bit × 48 kHz). The free-space guard (D7) accounts for it.
 - **Alternatives:** write AAC directly (not crash-safe); 32-bit float intermediates (2× disk usage for no audible benefit on meeting audio).

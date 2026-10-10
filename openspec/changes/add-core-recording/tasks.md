@@ -15,8 +15,8 @@
 
 ## 3. Core utilities
 
-- [ ] 3.1 Implement `FileNaming` (timestamp format `kRecord YYYY-MM-DD HH-mm-ss`, ` (mic)` / ` (system)` / ` (recording …)` suffixes, extension per format, collision numbering ` 2`, ` 3`…); verify with unit tests covering all spec scenarios
-- [ ] 3.2 Implement `OutputFormat` (AAC/ALAC/WAV → extension and `AVAudioFile` settings at 48 kHz, AAC ≥128 kbps stereo); verify with unit tests on generated settings
+- [x] 3.1 Implement `FileNaming` (timestamp format `kRecord YYYY-MM-DD HH-mm-ss`, ` (mic)` / ` (system)` / ` (recording …)` suffixes, extension per format, collision numbering ` 2`, ` 3`…); verify with unit tests covering all spec scenarios
+- [x] 3.2 Implement `OutputFormat` (AAC/ALAC/WAV → extension and `AVAudioFile` settings at 48 kHz, AAC ≥128 kbps stereo); verify with unit tests on generated settings
 - [x] 3.3 Implement the lock-free SPSC ring buffer on `Synchronization.Atomic`; verify with unit tests for wraparound, overflow handling, and a concurrent producer/consumer stress test
 - [x] 3.4 Implement level calculation (peak/RMS → normalized meter value) with an atomic snapshot; verify with unit tests on known signals (silence, full-scale sine)
 
@@ -42,8 +42,8 @@
 ## 7. Recording output
 
 - [x] 7.1 Implement `RecordingWriter`: writer task draining the ring buffers into 16-bit 48 kHz CAF intermediates in the destination folder; verify with a unit test feeding fake frames and reading the CAFs back (frame counts, channel counts)
-- [ ] 7.2 Implement `Finalizer`: mixed mode (mic centered, −3 dB per source, clamp) and separate mode, encoding to AAC/ALAC/WAV, collision-safe final names, deletion of intermediates, detection of an all-zero system track; verify with unit tests on generated signals (mix values, centered mic, output format/extension, no leftover temp files)
-- [ ] 7.3 Implement `StorageGuard` (pre-start writable probe and folder creation, 5 s free-space check with 500 MB reserve, write-error and folder-loss detection); verify with unit tests using an injected capacity provider and an unwritable temp directory, and add disk-full and drive-eject cases to the QA checklist
+- [x] 7.2 Implement `Finalizer`: mixed mode (mic centered, −3 dB per source, clamp) and separate mode, encoding to AAC/ALAC/WAV, collision-safe final names, deletion of intermediates, detection of an all-zero system track; verify with unit tests on generated signals (mix values, centered mic, output format/extension, no leftover temp files)
+- [x] 7.3 Implement `StorageGuard` (pre-start writable probe and folder creation, 5 s free-space check with 500 MB reserve, write-error and folder-loss detection); verify with unit tests using an injected capacity provider and an unwritable temp directory, and add disk-full and drive-eject cases to the QA checklist
 - [ ] 7.4 Verify crash safety manually: force-quit during a recording and confirm the intermediate CAF plays in QuickTime; add this check to the QA checklist
 
 ## 8. Recording session

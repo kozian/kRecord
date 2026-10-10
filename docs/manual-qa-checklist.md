@@ -27,6 +27,10 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 
 ## Recording output
 
+- [ ] **Disk full.** Create a small disk image (Disk Utility → New Image, 1 GB), mount it, set it as the destination folder, and fill it with a large file until about 600 MB are free. Record: within about 10 s after free space drops below 500 MB the recording stops, an error says disk space ran out, and the audio recorded so far is saved (as final file(s) or intermediate `(recording …).caf` files) on the image.
+- [ ] **External drive ejected.** Set a folder on a USB drive as the destination, start recording, and eject the drive in Finder (force-eject if needed). The recording stops within about 5 s with an error that the folder is unavailable; the app keeps working and the next recording to an available folder succeeds.
+- [ ] **Unwritable folder.** Choose a folder, then make it read-only in Finder (Get Info → Sharing & Permissions → Read only). Press Record: no recording starts and an error says the folder cannot be written to.
+
 ## Recording session
 
 ## Main window
