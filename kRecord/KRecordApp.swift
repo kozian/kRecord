@@ -4,7 +4,7 @@ import SwiftUI
 struct KRecordApp: App {
     init() {
         #if DEBUG
-        CaptureSpike.runIfRequested()
+        DebugRecording.runIfRequested()
         #endif
     }
 

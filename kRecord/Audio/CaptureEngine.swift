@@ -43,6 +43,8 @@ enum CaptureEvent: Equatable, Sendable {
 enum CaptureError: Error, Equatable, Sendable {
     case noSources
     case noInputDevice
+    /// A capture stream is not in the interleaved Float32 format the IOProc expects.
+    case unsupportedFormat
     /// A Core Audio call failed; `operation` names it for diagnostics.
     case coreAudio(operation: String, status: OSStatus)
 }

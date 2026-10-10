@@ -25,6 +25,14 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 
 ## Audio capture
 
+- [ ] **Both sources, clap test.** Play music through the speakers, start a 60 s recording with separate files, clap twice near the microphone at the start and twice at the end. Open both files in an audio editor at position zero: voice and music are present, and the claps (and the music heard through the microphone) line up with the system track equally well at the start and at the end.
+- [ ] **Start in silence.** With no app playing audio for at least a minute, start a recording, wait 10 s, then play audio. The file starts at the moment Record was pressed (the first 10 s contain the microphone), not when the audio started.
+- [ ] **Long silence.** Record 2 minutes, playing audio only during the first and last 10 s. The file is 2 minutes long without gaps.
+- [ ] **Two apps.** Play audio in two apps at once (e.g. Music and a browser video): both are audible in the system track.
+- [ ] **Stereo image.** Play a test file panned hard left: in the system track (separate-files mode) it is in the left channel only.
+- [ ] **Multichannel interface.** With a multichannel audio interface as the input, the microphone track is mono and contains the interface's first input.
+- [ ] **Level meters.** While recording, speaking moves only the microphone meter, and playing audio moves only the system audio meter.
+
 ## Recording output
 
 - [ ] **Disk full.** Create a small disk image (Disk Utility → New Image, 1 GB), mount it, set it as the destination folder, and fill it with a large file until about 600 MB are free. Record: within about 10 s after free space drops below 500 MB the recording stops, an error says disk space ran out, and the audio recorded so far is saved (as final file(s) or intermediate `(recording …).caf` files) on the image.

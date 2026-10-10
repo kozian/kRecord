@@ -27,6 +27,8 @@ enum OutputFormat: String, CaseIterable, Codable, Sendable {
         case .aac:
             settings[AVFormatIDKey] = kAudioFormatMPEG4AAC
             settings[AVEncoderBitRateKey] = Self.aacBitRate
+            // Constant bit rate: the default variable strategy drops far below 128 kbps on quiet audio.
+            settings[AVEncoderBitRateStrategyKey] = AVAudioBitRateStrategy_Constant
         case .alac:
             settings[AVFormatIDKey] = kAudioFormatAppleLossless
             settings[AVEncoderBitDepthHintKey] = 16

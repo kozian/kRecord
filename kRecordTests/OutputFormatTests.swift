@@ -34,6 +34,16 @@ struct OutputFormatTests {
         #expect(settings[AVLinearPCMIsFloatKey] as? Bool == false)
     }
 
+    private static func measuredBitRate(_ url: URL) throws -> UInt32 {
+        var fileID: AudioFileID?
+        guard AudioFileOpenURL(url as CFURL, .readPermission, 0, &fileID) == noErr, let fileID else { return 0 }
+        defer { AudioFileClose(fileID) }
+        var bitRate: UInt32 = 0
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        AudioFileGetProperty(fileID, kAudioFilePropertyBitRate, &size, &bitRate)
+        return bitRate
+    }
+
     /// The generated settings are accepted by AVAudioFile and produce the expected file format.
     @Test(arguments: OutputFormat.allCases)
     func settingsCreateWritableFiles(format: OutputFormat) throws {
@@ -42,8 +52,8 @@ struct OutputFormatTests {
         defer { try? FileManager.default.removeItem(at: url) }
         do {
             let file = try AVAudioFile(forWriting: url, settings: format.settings(channels: 2))
-            let buffer = try #require(AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: 4_800))
-            buffer.frameLength = 4_800
+            let buffer = try #require(AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: 96_000))
+            buffer.frameLength = 96_000
             try file.write(from: buffer)
         }
         let file = try AVAudioFile(forReading: url)
@@ -51,7 +61,10 @@ struct OutputFormatTests {
         #expect(file.fileFormat.sampleRate == 48_000)
         #expect(file.fileFormat.channelCount == 2)
         switch format {
-        case .aac: #expect(description.mFormatID == kAudioFormatMPEG4AAC)
+        case .aac:
+            #expect(description.mFormatID == kAudioFormatMPEG4AAC)
+            // Even for silent content the encoded rate stays at 128 kbps.
+            #expect(try Self.measuredBitRate(url) >= 120_000)
         case .alac: #expect(description.mFormatID == kAudioFormatAppleLossless)
         case .wav:
             #expect(description.mFormatID == kAudioFormatLinearPCM)
