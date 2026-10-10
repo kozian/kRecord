@@ -38,10 +38,13 @@ struct MainWindowView: View {
             // A microphone symbol instead of a text label leaves the picker room for full device
             // names in the narrow window; the picker keeps "Microphone" as its accessibility label.
             HStack(spacing: 4) {
-                Image(systemName: "mic")
-                    .foregroundStyle(.secondary)
-                    .help(Text("Microphone"))
-                    .accessibilityHidden(true)
+                HStack(spacing: 1) {
+                    Image(systemName: "mic")
+                    Text(verbatim: ":")
+                }
+                .foregroundStyle(.secondary)
+                .help(Text("Microphone"))
+                .accessibilityHidden(true)
                 MicrophonePicker(settings: model.settings, devices: model.devices,
                                  isLocked: model.recordingSettingsAreLocked)
                     .labelsHidden()

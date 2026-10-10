@@ -13,10 +13,10 @@ struct MenuBarContent: View {
         .disabled(!model.canToggleRecording)
 
         // A plain button: in a menu-style MenuBarExtra items are AppKit menu items, so gestures on a
-        // SettingsLink never run. Activating first brings the Settings window in front of other apps.
+        // SettingsLink never run. The app is not active while its menu bar menu is open, so the
+        // window is brought in front of other apps explicitly.
         Button("Settings…") {
-            NSApp.activate()
-            openSettings()
+            SettingsWindow.show(using: { openSettings() })
         }
 
         Divider()

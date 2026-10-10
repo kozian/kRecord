@@ -45,8 +45,8 @@ If voice processing cannot start on any candidate (resolved device, default inpu
 - **Why:** matches the default path's fallback and the spec scenario; a failed microphone must not end the recording.
 
 ### D5. "Settings…" as a button that activates the app
-The menu item becomes a `Button` that calls `NSApp.activate()` and then the SwiftUI `openSettings` environment action (macOS 14+), replacing `SettingsLink` and its gesture.
-- **Why:** in a `.menu`-style `MenuBarExtra` items are AppKit menu items, so gestures attached to them never run; a button action does.
+The menu item becomes a `Button` that calls the SwiftUI `openSettings` environment action (macOS 14+), replacing `SettingsLink` and its gesture, and then, on the next run loop pass, activates the app with `NSApp.activate(ignoringOtherApps: true)` and orders the Settings window front (`makeKeyAndOrderFront`, `orderFrontRegardless`). The same `SettingsWindow.show` helper is reachable from the DEBUG remote control (`openSettingsLikeMenuBar`), whose `logState` reports the active app and the topmost window.
+- **Why:** in a `.menu`-style `MenuBarExtra` items are AppKit menu items, so gestures attached to them never run; a button action does. The cooperative `NSApp.activate()` is declined while another app is active: with Finder active, the window opened behind Finder (first implementation, reported by the user and reproduced with the remote control); the forced activation makes kRecord active with the Settings window key and topmost.
 - **Alternative:** activating in the Settings view's `onAppear` — does not help when the Settings window is already open behind another app.
 
 ### D6. Settings window sized to its content, scrolling off
@@ -54,6 +54,9 @@ The form gets `.scrollDisabled(true)` and the `Settings` scene `.windowResizabil
 - **Why:** nothing in the window needs scrolling; six settings always fit on screen.
 - **Alternative:** a larger fixed height — breaks again when the notice or translations change the content height.
 - **Verification:** the DEBUG remote control logs, for the open Settings window, whether its scroll view shows a scroller and the document height against the visible height, in English and Russian, with and without the folder notice.
+
+### D7. Colon after the microphone symbol
+In the main window the microphone symbol before the device picker is followed by a colon ("🎤:"), so it reads as a label of the picker. The colon is part of the hidden, secondary-styled label; the picker's accessibility label stays "Microphone".
 
 ## Risks / Trade-offs
 

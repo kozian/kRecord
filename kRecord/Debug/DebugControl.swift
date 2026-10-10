@@ -7,7 +7,8 @@ import Foundation
 ///     open -n kRecord.app --args -KRDebugControl YES
 ///     echo <command> > ~/Music/kRecord/.debug-command
 ///
-/// Commands: `closeMainWindow`, `openSettings`, `startRecording`, `stopRecording`, `logState`, `quit`,
+/// Commands: `closeMainWindow`, `openSettings`, `openSettingsLikeMenuBar` (through `SettingsWindow.show`,
+/// as the menu bar menu does), `startRecording`, `stopRecording`, `logState`, `quit`,
 /// `confirmAlert`, `cancelAlert` (press the default or the Escape button of the modal alert).
 /// Output goes to `~/Music/kRecord/debug-control.log`.
 @MainActor
@@ -38,14 +39,9 @@ enum DebugControl {
             mainWindow?.performClose(nil)
             log("closed main window")
         case "openSettings":
-            // The app menu's "Settings…" item, as a click on it would do.
-            if let menu = NSApp.mainMenu?.items.first?.submenu,
-               let index = menu.items.firstIndex(where: { $0.keyEquivalent == "," }) {
-                menu.performActionForItem(at: index)
-                log("performed menu item '\(menu.items[index].title)'")
-            } else {
-                log("no Settings menu item")
-            }
+            performSettingsMenuItem()
+        case "openSettingsLikeMenuBar":
+            SettingsWindow.show(using: { performSettingsMenuItem() })
         case "startRecording":
             Task {
                 await model.startRecording()
@@ -71,6 +67,17 @@ enum DebugControl {
         if command == "logState" { logState() }
     }
 
+    /// The app menu's "Settings…" item, as a click on it would do.
+    private static func performSettingsMenuItem() {
+        if let menu = NSApp.mainMenu?.items.first?.submenu,
+           let index = menu.items.firstIndex(where: { $0.keyEquivalent == "," }) {
+            menu.performActionForItem(at: index)
+            log("performed menu item '\(menu.items[index].title)'")
+        } else {
+            log("no Settings menu item")
+        }
+    }
+
     private static func pressAlertButton(keyEquivalent: String) -> Bool {
         guard let window = NSApp.modalWindow, let content = window.contentView else { return false }
         func find(in view: NSView) -> NSButton? {
@@ -94,7 +101,17 @@ enum DebugControl {
     private static func logState() {
         let model = AppModel.shared
         log("state=\(model.session.state) elapsed=\(model.session.formattedElapsedTime) " +
-            "activationPolicy=\(NSApp.activationPolicy().rawValue)")
+            "activationPolicy=\(NSApp.activationPolicy().rawValue) active=\(NSApp.isActive) " +
+            "frontmost=\(NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none")")
+        // The frontmost normal-level on-screen window of any app, front to back.
+        let onScreen = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+            as? [[String: Any]] ?? []
+        let topWindow = onScreen.first { ($0[kCGWindowLayer as String] as? Int) == 0 }
+        log("top window: owner=\(topWindow?[kCGWindowOwnerName as String] ?? "none") " +
+            "name=\(topWindow?[kCGWindowName as String] ?? "")")
+        if let settings = SettingsWindow.window {
+            log("settings window: visible=\(settings.isVisible) key=\(settings.isKeyWindow)")
+        }
         if let modal = NSApp.modalWindow {
             var texts: [String] = []
             func collect(_ view: NSView) {

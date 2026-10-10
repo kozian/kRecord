@@ -9,6 +9,7 @@ Checking the code of `add-core-recording` against its specs, and using the app, 
 - Echo-cancellation capture follows input device changes like the default capture path does: it falls back to the default input when the selected microphone disappears, uses the selected microphone again when it comes back, follows the macOS default input when "System Default" is selected, and keeps the microphone track aligned with system audio across the switch. A device with another sample rate is converted correctly after the switch.
 - "Settings…" in the menu bar menu brings the Settings window to the front, also when another app is active.
 - The Settings window is sized to its content and does not scroll, also when the folder notice is shown and in Russian.
+- In the main window, a colon follows the microphone symbol before the device picker, so the symbol reads as the picker's label (presentation only; the main-window spec does not describe the symbol).
 - The audio-capture, menu-bar, and settings specs state these cases explicitly as scenarios.
 
 Out of scope: faster start with echo cancellation (prewarming voice processing), any other behavior change.
@@ -29,6 +30,7 @@ None.
 
 - `kRecord/Audio/VoiceProcessingCaptureEngine.swift`: device monitoring and rebuilding of the voice-processing microphone path during a recording; `VoiceMicrophonePath` converter set up per device format.
 - `kRecord/Audio/AggregateCaptureEngine.swift`: a way to rebuild the system-audio aggregate after voice processing restarts (D6 of the archived add-core-recording design requires voice processing to start first).
-- `kRecord/Views/MenuBar.swift`: the "Settings…" item.
+- `kRecord/Views/MenuBar.swift` and a new `kRecord/Views/SettingsWindow.swift`: the "Settings…" item and bringing the Settings window to the front.
+- `kRecord/Views/MainWindowView.swift`: the colon after the microphone symbol.
 - `kRecord/Views/SettingsView.swift` and the `Settings` scene in `kRecord/KRecordApp.swift`: sizing of the Settings window.
 - Tests, the DEBUG harness if needed for verification, and `docs/manual-qa-checklist.md`.

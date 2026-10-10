@@ -11,12 +11,17 @@
 ## 2. Settings from the menu bar
 
 - [x] 2.1 Replace the `SettingsLink` in `MenuBarContent` with a button that activates the app and calls the `openSettings` environment action; verify the build, that the menu still shows exactly the three actions, and that the strings check (`scripts/check-localization.py`) passes
+- [x] 2.3 Bring the Settings window to the front with forced activation (design D5, `SettingsWindow.show`) after the first implementation left it behind the active app; verify with the DEBUG remote control (`openSettingsLikeMenuBar` with Finder active): `logState` reports kRecord active, the Settings window key and topmost, while the plain `openSettings` path leaves Finder on top
 - [ ] 2.2 Add the "Settings… while another app is active" check to the menu bar section of the QA checklist and to `docs/spec-coverage.md`; verify by hand: with Finder active, choose "Settings…" from the menu bar menu and the Settings window comes to the front
 
 ## 3. Settings window without scrolling
 
 - [x] 3.1 Size the Settings window to its content with scrolling disabled (design D6); verify with the DEBUG remote control that the Settings window's scroll view shows no scroller and its document fits the visible height, in English and Russian (`-AppleLanguages "(ru)"`), with and without the folder-unavailable notice, and that the settings snapshot tests still pass
 - [x] 3.2 Add the "Settings window has no scroll bar" check to the settings section of the QA checklist and map the new scenario in `docs/spec-coverage.md`; verify both files contain it
+
+## 4. Main window
+
+- [x] 4.1 Add a colon after the microphone symbol before the device picker (design D7); verify the build, the main window snapshot tests, and that the localization check passes
 
 ## Workflow follow-up
 
