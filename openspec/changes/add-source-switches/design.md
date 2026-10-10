@@ -22,6 +22,7 @@ See proposal.md. Today `RecordingSession.start()` captures `permittedSources` fr
 `RecordingSession` captures `permittedSources ∩ settings.enabledSources`. `canStart` and `AppModel.canToggleRecording` require that set to be non-empty. When the microphone is off, `AppModel.startRecording()` does not request microphone access either.
 - **Why:** a source that is off never reaches `CaptureConfiguration`, so the engines, writer, and finalizer need no change and the microphone is never opened.
 - **Alternative:** capture and write silence — rejected: the microphone must not be opened.
+- **Found during hardware verification:** with the microphone off, the default input device was still opened. `AggregateCaptureEngine.inputCandidates` (the D3 fallback chain of `add-core-recording`) put the default input first even when the microphone was not requested, making it the aggregate's clock. It now returns only "no microphone" in that case; with the fix the input device is not running during a microphone-off recording, with and without echo cancellation. This also stops kRecord from opening the microphone when its permission is denied.
 - **Found during implementation:** with system audio off, a Mac without any input device reached the old mapping of the engine's "no input device" error to the permission error. It now reports its own error, "No microphone is connected. Connect one, or turn on system audio to record."
 
 ### D3. Checkboxes next to the meters

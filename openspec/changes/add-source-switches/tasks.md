@@ -8,7 +8,7 @@
 ## 2. Interface
 
 - [x] 2.1 Add a checkbox to each level meter row in the main window, disabled unless idle, and the note under the record button when no permitted source is on; add Russian strings; verify with view snapshots (both on, microphone off, both off, recording) in English and Russian and `scripts/check-localization.py`
-- [ ] 2.2 Verify on hardware with the app: with the microphone checkbox off, a recording shows no microphone-in-use indicator and produces only the system file in separate-files mode; with the system audio checkbox off, only the microphone is recorded
+- [x] 2.2 Verify on hardware with the app: with the microphone checkbox off, a recording shows no microphone-in-use indicator and produces only the system file in separate-files mode; with the system audio checkbox off, only the microphone is recorded
 
 ## 3. Documentation
 

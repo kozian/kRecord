@@ -176,6 +176,8 @@ actor AggregateCaptureEngine: CaptureEngine {
     /// audio is captured) no microphone at all, which keeps the recording going with a silent
     /// microphone track. For example, an aggregate device cannot be nested in our aggregate.
     static func inputCandidates(_ resolved: AudioObjectID?, sources: CaptureSources) -> [AudioObjectID?] {
+        // Without the microphone source no input device may be opened, not even as the clock.
+        guard sources.contains(.microphone) else { return [nil] }
         var candidates: [AudioObjectID?] = []
         if let resolved { candidates.append(resolved) }
         if let fallback = CoreAudioHAL.defaultInputDevice(), fallback != resolved { candidates.append(fallback) }
