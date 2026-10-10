@@ -46,7 +46,7 @@ The main window SHALL show two labeled level meters, one for the microphone and 
 - **THEN** the system audio meter moves in response to the audio
 
 ### Requirement: Microphone picker
-The main window SHALL provide a microphone picker listing "System Default" and all available input devices, bound to the same microphone setting as the Settings window. Changing it SHALL be disabled while a recording is active.
+The main window SHALL provide a microphone picker listing "System Default" and all available input devices except aggregate devices (see the audio-capture spec), bound to the same microphone setting as the Settings window. Changing it SHALL be disabled while a recording is active.
 
 #### Scenario: Picker synced with settings
 - **WHEN** the user selects a microphone in the main window

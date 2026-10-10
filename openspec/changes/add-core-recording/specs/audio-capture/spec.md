@@ -51,11 +51,15 @@ When no specific microphone is selected, the system SHALL use the current macOS 
 - **THEN** the recording continues and subsequent microphone audio comes from the new default device
 
 ### Requirement: Explicit microphone selection
-The system SHALL allow the user to select a specific input device from the list of currently available input devices, or to choose "System Default".
+The system SHALL allow the user to select a specific input device from the list of currently available input devices, or to choose "System Default". Aggregate devices SHALL NOT be offered, because capture combines the microphone and system audio in an aggregate device of its own, which cannot contain another aggregate device.
 
 #### Scenario: Specific microphone selected
 - **WHEN** the user selects a specific connected microphone and starts a recording
 - **THEN** microphone audio is captured from that device regardless of the macOS default input device
+
+#### Scenario: Aggregate devices are not offered
+- **WHEN** an aggregate device created in Audio MIDI Setup is available as an input
+- **THEN** it does not appear in the list of selectable input devices
 
 #### Scenario: Device list reflects hardware changes
 - **WHEN** an input device is connected or disconnected

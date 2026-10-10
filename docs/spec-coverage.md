@@ -13,6 +13,7 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Long recording stays in sync | harness (60 s, 7.9 ms offset without drift); QA [Audio capture] 60-minute sync |
 | Default input changes mid-recording | harness (default input switched mid-recording); QA [Audio capture] |
 | Specific microphone selected | `SettingsStoreTests.settingsPersistAcrossInstances`, `RecordingSessionTests.settingsAreSnapshotAtStart`; QA [Audio capture] |
+| Aggregate devices are not offered | `AudioDeviceCatalogTests.systemEnumerationIsConsistent` (kRecord's aggregate hidden); QA [Settings] No aggregate devices |
 | Device list reflects hardware changes | `AudioDeviceCatalogTests`; QA [Settings] hot-plug |
 | Selected microphone unplugged during recording | harness (USB microphone unplugged and replugged); QA [Audio capture] |
 | Selected microphone unavailable at start | QA [Audio capture]; `AudioDeviceCatalogTests` (list without the device) |
