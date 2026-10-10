@@ -2,6 +2,16 @@
 
 Versions follow semantic versioning; the build number is the git commit count of the release commit.
 
+## 0.3.0 — 2026-10-10
+
+### polish-settings-and-labels
+
+- Settings: "Save as m4a" gets a note that recordings are otherwise saved as `.aac`.
+- Settings: the microphone picker is removed; the microphone is chosen in the main window only.
+- Settings, "Menu Bar" section: a new "Show in menu bar" toggle, on by default, that shows or hides the menu bar item immediately. "Show recording time in menu bar" is disabled while the item is hidden.
+- Main window: the source checkboxes are labeled "Microphone" and "System audio" (Russian "Микрофон", "Системный звук") instead of "Record microphone" and "Record system audio".
+- About window: the copyright line names the author, "© 2026 Kuznetsov Konstantin".
+
 ## 0.2.1 — 2026-10-10
 
 ### add-release-versioning
