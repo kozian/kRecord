@@ -43,12 +43,17 @@ Microphone and system audio SHALL be captured on a shared timeline so that they 
 - **THEN** at the end of the recording the offset between microphone and system audio is not audibly different from the offset at the start
 
 ### Requirement: Default input device is followed
-When no specific microphone is selected, the system SHALL use the current macOS default input device and SHALL switch to the new default device if it changes during a recording, without stopping the recording.
+When no specific microphone is selected, the system SHALL use the current macOS default input device and SHALL switch to the new default device if it changes during a recording, without stopping the recording. This applies with echo cancellation on as well as off.
 
 #### Scenario: Default input changes mid-recording
 - **WHEN** a recording is active using the default input device
 - **AND** the user changes the macOS default input device
 - **THEN** the recording continues and subsequent microphone audio comes from the new default device
+
+#### Scenario: Default input changes with echo cancellation
+- **WHEN** echo cancellation is on and a recording is active using the default input device
+- **AND** the user changes the macOS default input device
+- **THEN** the recording continues, subsequent microphone audio comes from the new default device with echo cancellation applied, and the microphone track stays aligned with the system audio track
 
 ### Requirement: Explicit microphone selection
 The system SHALL allow the user to select a specific input device from the list of currently available input devices, or to choose "System Default". Aggregate devices SHALL NOT be offered, because capture combines the microphone and system audio in an aggregate device of its own, which cannot contain another aggregate device.
@@ -66,7 +71,7 @@ The system SHALL allow the user to select a specific input device from the list 
 - **THEN** the list of selectable input devices updates to reflect the change
 
 ### Requirement: Fallback when selected microphone disappears
-If the explicitly selected microphone becomes unavailable, the system SHALL fall back to the macOS default input device and continue recording. The user's selection SHALL be remembered and used again when the device reappears before the next recording.
+If the explicitly selected microphone becomes unavailable, the system SHALL fall back to the macOS default input device and continue recording. The user's selection SHALL be remembered and used again when the device reappears before the next recording. This applies with echo cancellation on as well as off.
 
 #### Scenario: Selected microphone unplugged during recording
 - **WHEN** a recording is active using an explicitly selected USB microphone
@@ -76,6 +81,15 @@ If the explicitly selected microphone becomes unavailable, the system SHALL fall
 #### Scenario: Selected microphone unavailable at start
 - **WHEN** the selected microphone is not connected and the user starts a recording
 - **THEN** the recording starts using the macOS default input device
+
+#### Scenario: Selected microphone unplugged with echo cancellation
+- **WHEN** echo cancellation is on and a recording is active using an explicitly selected USB microphone
+- **AND** that microphone is disconnected
+- **THEN** the recording continues using the macOS default input device (or with a silent microphone track if no input device is left), and the system audio track continues, with an interruption of at most about a second when another input device is available and at most about 1.5 seconds when none is left
+
+#### Scenario: Selected microphone reconnected with echo cancellation
+- **WHEN** echo cancellation is on, a recording fell back from an unplugged selected microphone, and that microphone is connected again
+- **THEN** subsequent microphone audio comes from the selected microphone, aligned with the system audio track
 
 ### Requirement: System audio continues across output device changes
 The system SHALL continue capturing system audio when the macOS output device changes during a recording.
