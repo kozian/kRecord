@@ -18,7 +18,7 @@ By default the system SHALL save each recording as one stereo file mixing both s
 - **THEN** the user's voice is equally loud in the left and right channels of the mixed file
 
 ### Requirement: Separate files option
-When the separate-files option is enabled, the system SHALL save the microphone and system audio as two separate files instead of a mixed file: a mono microphone file and a stereo system audio file, both starting at the same moment.
+When the separate-files option is enabled, the system SHALL save the microphone and system audio as two separate files instead of a mixed file: a mono microphone file and a stereo system audio file, both starting at the same moment. When only one source is recorded, only that source's file SHALL be created.
 
 #### Scenario: Separate files produced
 - **WHEN** a recording is stopped with the separate-files option enabled
@@ -28,6 +28,10 @@ When the separate-files option is enabled, the system SHALL save the microphone 
 #### Scenario: Separate files are aligned
 - **WHEN** both separate files are imported into an audio editor at position zero
 - **THEN** the microphone and system audio are aligned in time
+
+#### Scenario: Only one source recorded
+- **WHEN** the separate-files option is enabled, the microphone source is off, and a recording is stopped
+- **THEN** only the system audio file is created
 
 ### Requirement: Recording format
 Recordings SHALL be AAC audio at a 48 kHz sample rate and 128 kbps or higher, encoded while recording. When the "Save as m4a" setting is on (default), the system SHALL save each recording in an `.m4a` container by repackaging the recorded AAC audio without re-encoding it. When the setting is off, the system SHALL keep the recording as a raw AAC stream file with the `.aac` extension.
