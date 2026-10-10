@@ -7,14 +7,14 @@ Holds the user's recording preferences, their defaults and persistence, and the 
 ## ADDED Requirements
 
 ### Requirement: Available settings
-The Settings window SHALL provide exactly these settings: destination folder, microphone, output format, save separate files, echo cancellation, and show recording time in menu bar.
+The Settings window SHALL provide exactly these settings: destination folder, microphone, save as m4a, save separate files, echo cancellation, and show recording time in menu bar.
 
 #### Scenario: Settings window contents
 - **WHEN** the user opens the Settings window
 - **THEN** all six settings are shown with their current values
 
 ### Requirement: Default values
-On first launch the settings SHALL have these values: destination folder `~/Music/kRecord/`, microphone "System Default", output format AAC, save separate files off, echo cancellation off, show recording time in menu bar off.
+On first launch the settings SHALL have these values: destination folder `~/Music/kRecord/`, microphone "System Default", save as m4a on, save separate files off, echo cancellation off, show recording time in menu bar off.
 
 #### Scenario: First launch defaults
 - **WHEN** the app is launched for the first time
@@ -24,8 +24,8 @@ On first launch the settings SHALL have these values: destination folder `~/Musi
 Settings SHALL persist across app restarts, including access to a user-chosen destination folder outside the default location.
 
 #### Scenario: Restart keeps settings
-- **WHEN** the user changes the output format to WAV and restarts the app
-- **THEN** the output format is still WAV
+- **WHEN** the user turns off "Save as m4a" and restarts the app
+- **THEN** "Save as m4a" is still off
 
 #### Scenario: Custom folder remains writable after restart
 - **WHEN** the user chooses a custom destination folder, restarts the app, and records
@@ -50,11 +50,11 @@ If access to a previously chosen custom folder can no longer be restored at laun
 - **THEN** the destination folder setting shows the default `~/Music/kRecord/` with a notice that the previous folder is unavailable
 
 ### Requirement: Settings apply to next recording
-Changes to microphone, output format, separate files, and echo cancellation SHALL take effect from the next recording. These controls SHALL be disabled while a recording is active. The menu bar time setting SHALL take effect immediately.
+Changes to microphone, save as m4a, separate files, and echo cancellation SHALL take effect from the next recording. These controls SHALL be disabled while a recording is active. The menu bar time setting SHALL take effect immediately.
 
-#### Scenario: Format locked during recording
+#### Scenario: Save as m4a locked during recording
 - **WHEN** a recording is active
-- **THEN** the output format control cannot be changed
+- **THEN** the "Save as m4a" control cannot be changed
 
 #### Scenario: Menu bar time toggled during recording
 - **WHEN** a recording is active and the user enables showing the time in the menu bar

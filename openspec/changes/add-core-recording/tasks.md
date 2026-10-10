@@ -15,17 +15,17 @@
 
 ## 3. Core utilities
 
-- [x] 3.1 Implement `FileNaming` (timestamp format `kRecord YYYY-MM-DD HH-mm-ss`, ` (mic)` / ` (system)` / ` (recording …)` suffixes, extension per format, collision numbering ` 2`, ` 3`…); verify with unit tests covering all spec scenarios
-- [x] 3.2 Implement `OutputFormat` (AAC/ALAC/WAV → extension and `AVAudioFile` settings at 48 kHz, AAC ≥128 kbps stereo); verify with unit tests on generated settings
+- [ ] 3.1 Update `FileNaming` for the AAC pipeline: timestamp format `kRecord YYYY-MM-DD HH-mm-ss`, ` (mic)` / ` (system)` suffixes, `m4a` / `aac` extensions, no ` (recording …)` suffixes, collision numbering ` 2`, ` 3`… that treats a name as taken if it exists with either extension; verify with unit tests covering all spec scenarios
+- [ ] 3.2 Replace `OutputFormat` with AAC encoder settings (48 kHz, 128 kbps constant bit rate, mono and stereo) used for live ADTS writing; remove ALAC and WAV; verify with unit tests on the settings and the measured bit rate of an encoded silent file
 - [x] 3.3 Implement the lock-free SPSC ring buffer on `Synchronization.Atomic`; verify with unit tests for wraparound, overflow handling, and a concurrent producer/consumer stress test
 - [x] 3.4 Implement level calculation (peak/RMS → normalized meter value) with an atomic snapshot; verify with unit tests on known signals (silence, full-scale sine)
 
 ## 4. Settings
 
-- [ ] 4.1 Implement `SettingsStore` (@Observable, UserDefaults) with all six settings and spec defaults; verify with unit tests for defaults and persistence round-trip using an isolated UserDefaults suite
+- [ ] 4.1 Implement `SettingsStore` (@Observable, UserDefaults) with all six settings (including "Save as m4a", default on) and spec defaults, producing a `RecordingSettings` snapshot; verify with unit tests for defaults and persistence round-trip using an isolated UserDefaults suite
 - [ ] 4.2 Implement destination folder handling: default real `~/Music/kRecord/` path, security-scoped bookmark save/resolve, revert to default with a notice flag on failure; verify with unit tests (stale or missing bookmark → default + notice)
 - [ ] 4.3 Implement `AudioDeviceCatalog` (input devices UID + name, change notifications); verify with a unit test that the list is non-empty on a Mac with a built-in microphone, and add manual checks for hot-plugging to the QA checklist
-- [ ] 4.4 Build the Settings window (`Settings` scene, `Form`: folder path + Choose… + Reveal in Finder, microphone picker, format picker, separate-files toggle, echo-cancellation toggle, menu-bar-time toggle; recording-related controls disabled while recording); verify manually and add settings items to the QA checklist
+- [ ] 4.4 Build the Settings window (`Settings` scene, `Form`: folder path + Choose… + Reveal in Finder, microphone picker, "Save as m4a" toggle, separate-files toggle, echo-cancellation toggle, menu-bar-time toggle; recording-related controls disabled while recording); verify manually and add settings items to the QA checklist
 
 ## 5. Permissions
 
@@ -41,10 +41,11 @@
 
 ## 7. Recording output
 
-- [x] 7.1 Implement `RecordingWriter`: writer task draining the ring buffers into 16-bit 48 kHz CAF intermediates in the destination folder; verify with a unit test feeding fake frames and reading the CAFs back (frame counts, channel counts)
-- [x] 7.2 Implement `Finalizer`: mixed mode (mic centered, −3 dB per source, clamp) and separate mode, encoding to AAC/ALAC/WAV, collision-safe final names, deletion of intermediates, detection of an all-zero system track; verify with unit tests on generated signals (mix values, centered mic, output format/extension, no leftover temp files)
-- [x] 7.3 Implement `StorageGuard` (pre-start writable probe and folder creation, 5 s free-space check with 500 MB reserve, write-error and folder-loss detection); verify with unit tests using an injected capacity provider and an unwritable temp directory, and add disk-full and drive-eject cases to the QA checklist
-- [ ] 7.4 Verify crash safety manually: force-quit during a recording and confirm the intermediate CAF plays in QuickTime; add this check to the QA checklist
+- [ ] 7.1 Rewrite `RecordingWriter` for live AAC: a writer task drains the ring buffers, mixes in real time in mixed mode (mic centered, −3 dB per source, clamp) or keeps sources apart in separate mode, encodes AAC into ADTS `.aac` files under the final names, counts encoded frames, and detects an all-zero system track; verify with unit tests feeding fake frames (decoded content and mix values, frame counts, silence flag, a copy of an unclosed file is playable, write failures)
+- [ ] 7.2 Rewrite `Finalizer` as repackaging: with "Save as m4a" on, copy the AAC packets of each `.aac` into an `.m4a` with the magic cookie and a packet table (2112 priming frames, exact valid frame count), then delete the `.aac`; with it off, keep the `.aac`; on failure keep the `.aac`; verify with unit tests (no re-encoding: identical packets, exact duration, extension, removed `.aac`, failure path)
+- [ ] 7.3 Lower the `StorageGuard` free-space reserve to 100 MB (pre-start writable probe and folder creation, 5 s free-space check, write-error and folder-loss detection stay); update its unit tests and the disk-full QA item
+- [ ] 7.4 Verify crash safety manually: force-quit during a recording and confirm the `.aac` file plays in QuickTime; add this check to the QA checklist
+- [ ] 7.5 Adapt the rest of the code to the AAC pipeline: `RecordingSettings` (`saveAsM4A` instead of `format`), `RecordingSession` (final names and the writer's silence flag), the DEBUG recording harness (`-KRDebugSaveAsM4A`), `CLAUDE.md`, and the QA checklist; remove the CAF/PCM code; verify all unit tests pass and a debug recording in each mode (mixed/separate × m4a on/off) produces the expected files
 
 ## 8. Recording session
 
@@ -66,7 +67,7 @@
 
 - [ ] 11.1 Translate all strings in `Localizable.xcstrings` and `InfoPlist.xcstrings` to Russian; verify that no strings are untranslated in the catalog and check the UI with `-AppleLanguages (ru)` and `(de)` (English fallback); add localization items to the QA checklist
 - [ ] 11.2 Review `docs/manual-qa-checklist.md` against every spec scenario that unit tests do not cover and fill gaps; verify each spec in `specs/` maps to at least one automated test or checklist item
-- [ ] 11.3 Run the full manual QA checklist on an M1-class Mac with a 60-minute meeting recording (mixed AAC) plus short recordings in ALAC, WAV and separate-files mode; verify all items pass and record results and the macOS version at the end of the checklist
+- [ ] 11.3 Run the full manual QA checklist on an M1-class Mac with a 60-minute meeting recording (mixed, saved as m4a) plus short recordings with "Save as m4a" off and in separate-files mode; verify all items pass and record results and the macOS version at the end of the checklist
 
 ## Workflow follow-up
 

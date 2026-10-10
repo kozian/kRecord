@@ -35,7 +35,7 @@ While a recording is active, the system SHALL track elapsed recording time from 
 After the user stops a recording, the system SHALL indicate that the file is being finalized until the output file(s) are complete, and SHALL NOT allow a new recording to start until finalization finishes.
 
 #### Scenario: Finalizing a long recording
-- **WHEN** the user stops a long recording that requires format conversion
+- **WHEN** the user stops a long recording that is being saved as `.m4a`
 - **THEN** the UI indicates the recording is being saved
 - **AND** the record action is unavailable until saving completes
 

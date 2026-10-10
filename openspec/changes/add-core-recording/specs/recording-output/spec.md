@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Turns captured audio into files on disk: chooses format and layout (mixed or separate), names and places files, keeps in-progress recordings safe, and handles storage failures.
+Turns captured audio into files on disk: encodes it as AAC while recording, chooses the layout (mixed or separate) and container (m4a or aac), names and places files, keeps in-progress recordings safe, and handles storage failures.
 
 ## ADDED Requirements
 
@@ -29,20 +29,20 @@ When the separate-files option is enabled, the system SHALL save the microphone 
 - **WHEN** both separate files are imported into an audio editor at position zero
 - **THEN** the microphone and system audio are aligned in time
 
-### Requirement: Output formats
-The system SHALL support these output formats: AAC in an `.m4a` container (default), Apple Lossless (ALAC) in an `.m4a` container, and uncompressed WAV (`.wav`). Recordings SHALL use a 48 kHz sample rate. AAC SHALL be encoded at 128 kbps or higher.
+### Requirement: Recording format
+Recordings SHALL be AAC audio at a 48 kHz sample rate and 128 kbps or higher, encoded while recording. When the "Save as m4a" setting is on (default), the system SHALL save each recording in an `.m4a` container by repackaging the recorded AAC audio without re-encoding it. When the setting is off, the system SHALL keep the recording as a raw AAC stream file with the `.aac` extension.
 
 #### Scenario: Default format
 - **WHEN** a recording is stopped with default settings
 - **THEN** the file is AAC audio with the `.m4a` extension
 
-#### Scenario: WAV selected
-- **WHEN** the WAV format is selected and a recording is stopped
-- **THEN** the file is uncompressed PCM audio with the `.wav` extension
+#### Scenario: Save as m4a off
+- **WHEN** "Save as m4a" is off and a recording is stopped
+- **THEN** the file is AAC audio with the `.aac` extension
 
-#### Scenario: ALAC selected
-- **WHEN** the ALAC format is selected and a recording is stopped
-- **THEN** the file is Apple Lossless audio with the `.m4a` extension
+#### Scenario: Saving as m4a does not re-encode
+- **WHEN** a recording is saved as `.m4a`
+- **THEN** its audio is identical to the AAC audio recorded during the session and has exactly the recorded duration
 
 ### Requirement: Automatic saving to destination folder
 The system SHALL save recordings automatically to the configured destination folder without prompting the user for a file name or location.
@@ -52,7 +52,7 @@ The system SHALL save recordings automatically to the configured destination fol
 - **THEN** the file appears in the destination folder without any save dialog
 
 ### Requirement: Timestamp-based file names
-Files SHALL be named `kRecord YYYY-MM-DD HH-mm-ss.<ext>` using the local start time of the recording. In separate-files mode, names SHALL use the suffixes ` (mic)` and ` (system)` before the extension. If a file with the same name exists, the system SHALL append a numeric suffix and SHALL NOT overwrite existing files.
+Files SHALL be named `kRecord YYYY-MM-DD HH-mm-ss.<ext>` using the local start time of the recording, where `<ext>` is `m4a` or `aac`. In separate-files mode, names SHALL use the suffixes ` (mic)` and ` (system)` before the extension. If a file with the same name exists with either extension, the system SHALL append a numeric suffix and SHALL NOT overwrite existing files.
 
 #### Scenario: Mixed file name
 - **WHEN** a recording started at 2026-10-10 14:30:05 local time is saved as AAC
@@ -62,20 +62,24 @@ Files SHALL be named `kRecord YYYY-MM-DD HH-mm-ss.<ext>` using the local start t
 - **WHEN** the same recording is saved in separate-files mode
 - **THEN** the files are named `kRecord 2026-10-10 14-30-05 (mic).m4a` and `kRecord 2026-10-10 14-30-05 (system).m4a`
 
+#### Scenario: Raw AAC file name
+- **WHEN** the same recording is saved with "Save as m4a" off
+- **THEN** the file is named `kRecord 2026-10-10 14-30-05.aac`
+
 #### Scenario: Name collision
 - **WHEN** a file with the target name already exists in the destination folder
 - **THEN** the new file is saved as `kRecord 2026-10-10 14-30-05 2.m4a` and the existing file is unchanged
 
 ### Requirement: Crash-safe recording
-While a recording is active, audio SHALL be written to disk incrementally in the destination folder so that, if the app terminates unexpectedly, the audio recorded up to that point remains in a playable file.
+While a recording is active, the encoded AAC stream SHALL be written to disk incrementally in the destination folder, under the recording's final name with the `.aac` extension, so that, if the app terminates unexpectedly, the audio recorded up to that point remains in a playable file.
 
 #### Scenario: App killed during recording
 - **WHEN** the app is force-quit 5 minutes into a recording
-- **THEN** a playable audio file containing approximately the first 5 minutes remains in the destination folder
+- **THEN** a playable `.aac` file containing approximately the first 5 minutes remains in the destination folder
 
 #### Scenario: Normal stop leaves only final files
 - **WHEN** a recording is stopped normally
-- **THEN** only the final output file(s) remain in the destination folder and no temporary files are left behind
+- **THEN** only the final output file(s) remain in the destination folder; when saved as `.m4a`, the `.aac` stream is removed
 
 ### Requirement: Stop with error on storage failure
 If the destination volume runs out of space or the destination folder becomes unavailable during a recording, the system SHALL stop the recording, keep all audio written so far, and report an error to the user.

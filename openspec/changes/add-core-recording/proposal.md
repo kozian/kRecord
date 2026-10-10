@@ -13,12 +13,12 @@ I need a dead-simple way to record meetings on my Mac: my own voice from the mic
 - Save recordings automatically to a configurable folder (default `~/Music/kRecord/`) with timestamp-based file names:
   - default: one mixed stereo file (system audio stereo, microphone centered, 50/50 mix);
   - option: separate microphone and system audio files.
-- Output formats: AAC (`.m4a`, default), ALAC (`.m4a`), WAV.
-- Crash-safe recording: audio is written incrementally so an interrupted recording remains readable.
+- Recordings are AAC (48 kHz, 128 kbps), encoded live while recording. They are saved as `.m4a` by default (the AAC stream is repackaged on stop, without re-encoding), or kept as the raw `.aac` stream when "Save as m4a" is off.
+- Crash-safe recording: the AAC stream is written incrementally, so an interrupted recording remains playable.
 - Recording stops with a visible error when disk space runs out or the destination folder becomes unavailable.
 - Main window: record/stop button, elapsed time, separate level meters for microphone and system audio, microphone selection.
 - Menu bar item: grey icon when idle, red while recording, optional elapsed time next to the icon; menu with Start/Stop Recording, Settings…, Quit. Quitting during a recording asks to confirm "Stop recording and quit".
-- Settings window: destination folder, microphone, output format, separate-files option, echo cancellation, show-time-in-menu-bar.
+- Settings window: destination folder, microphone, save as m4a, separate-files option, echo cancellation, show-time-in-menu-bar.
 - Request microphone and system audio capture permissions on first launch; record whatever sources are permitted.
 - UI localized in English and Russian.
 - A manual QA checklist document (Markdown) covering behavior that cannot be unit-tested.
@@ -29,7 +29,7 @@ I need a dead-simple way to record meetings on my Mac: my own voice from the mic
 
 ### New Capabilities
 - `audio-capture`: capturing microphone and system audio, input device selection and fallback, stream synchronization, echo cancellation, live level metering.
-- `recording-output`: writing recordings to disk: formats, mixing vs. separate files, naming, destination folder, crash safety, disk/folder error handling.
+- `recording-output`: writing recordings to disk: AAC encoding and the m4a/aac container choice, mixing vs. separate files, naming, destination folder, crash safety, disk/folder error handling.
 - `recording-session`: the recording lifecycle shared by all UI surfaces: start/stop, elapsed time, error states, quit-while-recording confirmation.
 - `main-window`: the primary app window with record button, timer, level meters, and microphone picker.
 - `menu-bar`: menu bar status item with recording indicator, optional timer, and menu actions.

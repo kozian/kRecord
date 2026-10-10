@@ -14,7 +14,7 @@ Constraints that shape the design:
 
 **Goals:**
 - One capture pipeline that gives sample-aligned microphone and system audio, so mixing and separate files share the same code path.
-- Crash-safe on-disk format during recording, with format conversion deferred to stop.
+- Crash-safe on-disk format during recording that is already the final encoding, so stopping needs at most a lossless repackaging.
 - A testable core: recording state machine, file naming, settings, mixing math, and finalization run without real audio hardware.
 
 **Non-Goals:**
@@ -48,14 +48,15 @@ A `DeviceMonitor` listens to `kAudioHardwarePropertyDevices`, `kAudioHardwarePro
 The IOProc copies frames into a preallocated lock-free single-producer/single-consumer ring buffer per source (built on `Synchronization.Atomic`) and computes peak/RMS levels for the meters. A non-real-time writer task drains the buffers roughly every 50 ms and writes to disk. Levels are published to the UI at about 20 Hz through an atomic snapshot that the main actor polls.
 - **Why:** keeps the real-time thread free of I/O and locks; Swift 6 friendly because the only shared state is atomics and an `@unchecked Sendable` ring buffer with a single producer and a single consumer.
 
-### D5. Crash-safe intermediate files, convert on stop
-While recording, write one 16-bit 48 kHz PCM CAF file per source into the destination folder, named `kRecord <timestamp> (recording mic).caf` and `kRecord <timestamp> (recording system).caf`. The CAF header uses an "unknown data size" so a truncated file stays playable. On stop, a `Finalizer` produces the requested output:
-- mixed mode: read both CAFs, mix (system stereo; mic duplicated to L/R; each source at −3 dB, i.e. a gain of 0.707; samples clamped to [−1, 1]), and encode to the target format;
-- separate mode: encode each CAF to the target format (mic mono, system stereo);
-then delete the intermediate files. Encoding uses `AVAudioFile` with AAC (128 kbps for both stereo and mono, as the spec requires at least 128 kbps), ALAC 16-bit, or WAV 16-bit settings.
-- **Why:** CAF/PCM survives crashes; an `.m4a` written directly lacks its index (moov) until it is closed. Conversion at stop takes seconds for an hour of audio on M1.
-- **Trade-off:** temporary disk usage of about 1 GB per hour (3 channels × 16-bit × 48 kHz). The free-space guard (D7) accounts for it.
-- **Alternatives:** write AAC directly (not crash-safe); 32-bit float intermediates (2× disk usage for no audible benefit on meeting audio).
+### D5. Live AAC stream, repackage on stop
+While recording, the writer task encodes AAC (48 kHz, 128 kbps constant bit rate) and appends it as an ADTS stream directly under the recording's final name with the `.aac` extension (`kRecord <timestamp>.aac`, or `… (mic).aac` and `… (system).aac` in separate-files mode).
+- **Mixed mode:** the writer mixes in real time before encoding: system stereo, mic duplicated to L/R, each source at −3 dB (gain 0.708), samples clamped to [−1, 1]. Both ring buffers advance by the same frame counts (D2), so the writer consumes equal frame counts from both.
+- **Separate mode:** two encoders: mic mono, system stereo.
+- **The writer also** counts the frames it encoded per stream and notes whether the system audio was entirely digital zero (permissions hint, D9).
+- **On stop with "Save as m4a" on,** the finalizer copies the AAC packets into an `.m4a` file (`AudioFile` packet copy with the magic cookie), writes the packet table (2112 priming frames, valid frames = frames encoded) so the duration is sample-exact, and deletes the `.aac`. Nothing is re-encoded, so saving takes seconds even for long recordings. With the setting off, the `.aac` is the final file and stop is immediate.
+- **Why:** an ADTS stream is self-delimiting, so a truncated file stays playable (verified: a copy taken 5 s into a recording without closing the file played 4.992 s). Disk usage is about 58 MB per hour instead of about 1 GB for PCM intermediates, and there is no long conversion at stop. An `.m4a` written directly would lack its index (moov) until closed.
+- **Trade-off:** ADTS carries no encoder-delay information, so a raw `.aac` file starts with about 44 ms of encoder priming; separate `.aac` files share the same priming and stay aligned. The `.m4a` stores the priming and trims it. ALAC and WAV are not offered.
+- **Alternatives:** PCM CAF intermediates converted at stop (the previous design: 1 GB/h, slow stop, no quality benefit since AAC is encoded once either way); fragmented MP4 via `AVAssetWriter` (more moving parts for the same result).
 
 ### D6. Echo cancellation through AVAudioEngine voice processing
 When echo cancellation is enabled, the microphone is captured by `AVAudioEngine.inputNode` with `setVoiceProcessingEnabled(true)` (other-audio ducking minimized through `voiceProcessingOtherAudioDuckingConfiguration`), while system audio comes from a tap-only aggregate device. The two streams are aligned by host time at start; mic frames are dropped or padded to correct accumulated drift against the system audio frame count.
@@ -74,7 +75,7 @@ When echo cancellation is enabled, the microphone is captured by `AVAudioEngine.
   - The buffers' host time does not include the voice-processing delay: the API reports about 1.5 ms, but the measured delay is 38.7 ms. That measured constant is subtracted; strong clicks then land within −2…+8 ms of the direct-capture alignment. The QA checklist re-checks this with a different microphone.
 
 ### D7. Storage guard
-Before starting, verify the folder exists or can be created and is writable (by creating and deleting a probe file). During recording, check `volumeAvailableCapacityForImportantUsage` every 5 s and stop with a "disk full" error below a 500 MB reserve, which leaves room for finalization. Any write error from the writer, or the folder disappearing, also stops the recording with the matching error; intermediate files written so far are kept.
+Before starting, verify the folder exists or can be created and is writable (by creating and deleting a probe file). During recording, check `volumeAvailableCapacityForImportantUsage` every 5 s and stop with a "disk full" error below a 100 MB reserve, which leaves room for repackaging to `.m4a` (about 58 MB per hour of audio). Any write error from the writer, or the folder disappearing, also stops the recording with the matching error; the `.aac` written so far is kept.
 
 ### D8. App structure (SwiftUI scenes)
 - `Window("kRecord", id: "main")`: main window, regular activation policy (Dock icon present), reopened on Dock click.
@@ -105,7 +106,8 @@ Entitlements: `com.apple.security.app-sandbox`, `com.apple.security.device.audio
 - [Voice processing ducks other audio or conflicts with the tap] → Confirmed by the spike: no conflict with the tap, but other audio is ducked by about 7.6 dB even at the minimum ducking level, and the system track is recorded ducked. Accepted because the feature is opt-in and off by default.
 - [Gap during device switch] → Both tracks lose the same span, so alignment is kept; documented in the manual checklist.
 - [Mixing two loud sources can clip] → −3 dB per source plus clamping; acceptable for meeting audio, no other processing by design.
-- [Temporary disk usage of about 1 GB/hour] → The storage guard reserve and the error path keep partial audio.
+- [Repackaging needs free space roughly equal to the `.aac` size] → The 100 MB reserve (D7) covers well over an hour; if repackaging fails, the `.aac` is kept as the result.
+- [Raw `.aac` files start with about 44 ms of encoder priming] → Equal in separate files, so alignment holds; `.m4a` (the default) trims it.
 - [`assets.music` entitlement and sandbox container paths] → Verified in the spike with the real `~/Music` path; the `NSOpenPanel` fallback remains for unexpected access failures.
 
 ## Migration Plan
