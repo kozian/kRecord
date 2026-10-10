@@ -48,6 +48,8 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+        // Everything fits, so the window is sized to the form instead of scrolling it (design D6).
+        .scrollDisabled(true)
         .frame(width: 480)
         .fixedSize(horizontal: false, vertical: true)
         .alert("The folder can't be used", isPresented: $folderError) {

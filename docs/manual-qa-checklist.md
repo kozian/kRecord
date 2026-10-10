@@ -85,7 +85,7 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 - [ ] **Icon states.** The menu bar item is present while the app runs, also after closing the main window. It is a grey template icon when idle (check in light and dark appearance, and with a coloured wallpaper) and red while recording.
 - [ ] **Time next to the icon.** With "Show recording time in menu bar" on, the elapsed time appears next to the red icon during a recording and updates every second; with it off, only the icon is shown. Toggling it during a recording applies immediately.
 - [ ] **Menu contents.** The menu shows exactly "Start Recording" (or "Stop Recording" while recording), "Settings…", and "Quit". The first item is disabled while a recording is being saved.
-- [ ] **Settings from the menu.** Choose "Settings…" with another app in front: the Settings window opens in front of other windows.
+- [ ] **Settings from the menu.** Make Finder the active app, then choose "Settings…" from the menu bar menu: kRecord becomes active and the Settings window opens in front of other windows (also when it was already open behind them).
 - [ ] **Quit from the menu.** "Quit" behaves like ⌘Q, including the confirmation during a recording.
 
 ## Settings
@@ -93,6 +93,7 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 - [ ] **Microphone list, hot-plug.** With the main window or Settings open, plug in a USB microphone: it appears in the microphone picker within about a second. Unplug it: it disappears from the list (a remembered selection stays visible as unavailable, see the main window section).
 - [ ] **No aggregate devices.** Create an aggregate device in Audio MIDI Setup: it does not appear in the microphone picker, and neither does "kRecord Capture" during a recording.
 - [ ] **Window contents.** The Settings window shows the destination folder (with the home folder written as ~), Choose…, Show in Finder, Microphone, Save as m4a, separate files, Echo cancellation, and Show recording time in menu bar.
+- [ ] **No scroll bar.** Open Settings (also in Russian and with the "folder unavailable" notice showing): the window fits all settings, shows no scroll bar, and the form does not scroll.
 - [ ] **First-launch defaults.** On a clean profile (quit the app, delete `~/Library/Containers/com.kozian.kRecord/Data/Library/Preferences/com.kozian.kRecord.plist`) the folder is `~/Music/kRecord`, microphone is System Default, Save as m4a is on, and the other three switches are off.
 - [ ] **Persistence.** Change several settings and a custom folder, quit, relaunch: everything is as left. Record: the file lands in the custom folder without any folder prompt.
 - [ ] **Folder deleted while the app is not running.** Choose a custom folder, quit, move the folder to the Trash, relaunch: the Settings window shows `~/Music/kRecord` and a notice that the previous folder is unavailable; ✕ dismisses it, and after another relaunch the notice does not return.

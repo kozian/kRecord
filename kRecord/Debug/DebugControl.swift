@@ -40,7 +40,7 @@ enum DebugControl {
         case "openSettings":
             // The app menu's "Settings…" item, as a click on it would do.
             if let menu = NSApp.mainMenu?.items.first?.submenu,
-               let index = menu.items.firstIndex(where: { $0.title.hasPrefix("Settings") }) {
+               let index = menu.items.firstIndex(where: { $0.keyEquivalent == "," }) {
                 menu.performActionForItem(at: index)
                 log("performed menu item '\(menu.items[index].title)'")
             } else {
@@ -82,6 +82,11 @@ enum DebugControl {
         return true
     }
 
+    private static func scrollViews(in view: NSView?) -> [NSScrollView] {
+        guard let view else { return [] }
+        return (view as? NSScrollView).map { [$0] } ?? [] + view.subviews.flatMap { scrollViews(in: $0) }
+    }
+
     private static var mainWindow: NSWindow? {
         NSApp.windows.first { $0.title == "kRecord" }
     }
@@ -99,6 +104,14 @@ enum DebugControl {
             }
             if let content = modal.contentView { collect(content) }
             log("MODAL ALERT: \(texts)")
+        }
+        for window in NSApp.windows where window.isVisible {
+            for scroll in scrollViews(in: window.contentView) {
+                let document = scroll.documentView?.frame.height ?? 0
+                let visible = scroll.contentView.bounds.height
+                log("scroll in '\(window.title)': scrollerShown=\(scroll.hasVerticalScroller && !(scroll.verticalScroller?.isHidden ?? true)) " +
+                    "document=\(Int(document)) visible=\(Int(visible)) overflow=\(Int(document - visible))")
+            }
         }
         for window in NSApp.windows {
             log("window \(type(of: window)) title='\(window.title)' visible=\(window.isVisible) " +

@@ -31,5 +31,6 @@ struct KRecordApp: App {
         Settings {
             SettingsView(model: model)
         }
+        .windowResizability(.contentSize)
     }
 }

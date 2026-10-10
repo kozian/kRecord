@@ -4,6 +4,7 @@ import SwiftUI
 /// The menu bar item's menu (menu-bar spec): start/stop, Settings…, Quit.
 struct MenuBarContent: View {
     let model: AppModel
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         Button(model.session.isRecording ? "Stop Recording" : "Start Recording") {
@@ -11,11 +12,12 @@ struct MenuBarContent: View {
         }
         .disabled(!model.canToggleRecording)
 
-        SettingsLink {
-            Text("Settings…")
+        // A plain button: in a menu-style MenuBarExtra items are AppKit menu items, so gestures on a
+        // SettingsLink never run. Activating first brings the Settings window in front of other apps.
+        Button("Settings…") {
+            NSApp.activate()
+            openSettings()
         }
-        // A menu item does not bring the Settings window to the front by itself.
-        .simultaneousGesture(TapGesture().onEnded { NSApp.activate() })
 
         Divider()
 

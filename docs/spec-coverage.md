@@ -95,6 +95,7 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Menu while idle / while recording | QA [Menu bar] Menu contents |
 | Start unavailable while saving | `AppModelTests.controlFollowsSessionState`; QA [Recording session] |
 | Open settings | harness (Settings window opens with the main window closed); QA [Menu bar] Settings from the menu |
+| Open settings while another app is active | QA [Menu bar] Settings from the menu |
 | Quit while idle | `AppModelTests.quitWhileIdleNeedsNoConfirmation`; harness; QA [Menu bar] |
 
 ## permissions
@@ -116,6 +117,7 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Scenario | Checked by |
 |---|---|
 | Settings window contents | `ViewSnapshotTests.settingsDefault`; QA [Settings] |
+| Settings shown without scrolling | harness (remote control `logState`: no scroller, document fits, in English and Russian, with and without the folder notice); QA [Settings] No scroll bar |
 | First launch defaults | `SettingsStoreTests.firstLaunchDefaults`, `realDefaultFolderIsMusicKRecord`; QA [Settings] |
 | Restart keeps settings | `SettingsStoreTests.settingsPersistAcrossInstances`; QA [Settings] Persistence |
 | Custom folder remains writable after restart | `SettingsStoreTests.customFolderSurvivesRestart`, `FolderRestorationTests` (fake access); QA [Settings] Persistence (the real sandbox bookmark is only exercised here) |
