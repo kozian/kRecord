@@ -17,6 +17,7 @@ actor AggregateCaptureEngine: CaptureEngine {
         let microphone: RingBuffer?
         let system: RingBuffer?
         let levels: LevelSnapshot
+        let timeline: TimelineAnchor
     }
 
     /// The current aggregate device; replaced when the input device changes.
@@ -81,7 +82,8 @@ actor AggregateCaptureEngine: CaptureEngine {
                 ? RingBuffer(channels: CaptureStreams.microphoneChannels, capacityFrames: capacity) : nil,
             system: captureSystem
                 ? RingBuffer(channels: CaptureStreams.systemChannels, capacityFrames: capacity) : nil,
-            levels: LevelSnapshot())
+            levels: LevelSnapshot(),
+            timeline: TimelineAnchor())
         do {
             device = try Self.startIO(layout: probe.layout, input: probe.input, capture: capture)
         } catch {
@@ -100,6 +102,12 @@ actor AggregateCaptureEngine: CaptureEngine {
 
         return CaptureStreams(sampleRate: rate, microphone: capture.microphone, system: capture.system,
                               levels: capture.levels)
+    }
+
+    /// Host time to system frame mapping of the running capture, for aligning another microphone
+    /// source to the system audio track (design D6).
+    func systemTimeline() -> TimelineAnchor? {
+        capture?.timeline
     }
 
     func stop() async {
@@ -283,12 +291,13 @@ actor AggregateCaptureEngine: CaptureEngine {
     private static func startIO(layout: AggregateLayout, input: AudioObjectID?,
                                 capture: Capture) throws(CaptureError) -> Device {
         let context = AggregateIOContext(microphone: capture.microphone, system: capture.system,
-                                         levels: capture.levels, micBufferIndex: layout.micBufferIndex,
+                                         levels: capture.levels, timeline: capture.timeline,
+                                         micBufferIndex: layout.micBufferIndex,
                                          tapBufferIndex: layout.tapBufferIndex)
         var ioProc: AudioDeviceIOProcID?
         try CoreAudioHAL.check(
-            AudioDeviceCreateIOProcIDWithBlock(&ioProc, layout.aggregate, nil) { _, input, _, _, _ in
-                context.process(input)
+            AudioDeviceCreateIOProcIDWithBlock(&ioProc, layout.aggregate, nil) { _, input, inputTime, _, _ in
+                context.process(input, time: inputTime)
             },
             "AudioDeviceCreateIOProcIDWithBlock")
         guard let ioProc else { throw .coreAudio(operation: "AudioDeviceCreateIOProcIDWithBlock", status: 0) }
@@ -309,17 +318,19 @@ final class AggregateIOContext: @unchecked Sendable {
     let microphone: RingBuffer?
     let system: RingBuffer?
     let levels: LevelSnapshot
+    private let timeline: TimelineAnchor
     private let micBufferIndex: Int?
     private let tapBufferIndex: Int?
     /// Silence written in place of a missing buffer so both sources keep the same frame count.
     private let silence: UnsafeMutablePointer<Float>
     private static let silenceFrames = 8_192
 
-    init(microphone: RingBuffer?, system: RingBuffer?, levels: LevelSnapshot,
+    init(microphone: RingBuffer?, system: RingBuffer?, levels: LevelSnapshot, timeline: TimelineAnchor,
          micBufferIndex: Int?, tapBufferIndex: Int?) {
         self.microphone = microphone
         self.system = system
         self.levels = levels
+        self.timeline = timeline
         self.micBufferIndex = micBufferIndex
         self.tapBufferIndex = tapBufferIndex
         silence = .allocate(capacity: Self.silenceFrames * 2)
@@ -330,7 +341,7 @@ final class AggregateIOContext: @unchecked Sendable {
         silence.deallocate()
     }
 
-    func process(_ input: UnsafePointer<AudioBufferList>) {
+    func process(_ input: UnsafePointer<AudioBufferList>, time: UnsafePointer<AudioTimeStamp>) {
         let buffers = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer(mutating: input))
         let micFrames = write(buffers, index: micBufferIndex, to: microphone, source: .microphone)
         let systemFrames = write(buffers, index: tapBufferIndex, to: system, source: .system)
@@ -338,6 +349,10 @@ final class AggregateIOContext: @unchecked Sendable {
         if microphone != nil, system != nil, micFrames != systemFrames {
             let missing = abs(micFrames - systemFrames)
             writeSilence(frames: missing, to: micFrames < systemFrames ? microphone! : system!)
+        }
+        let systemAdvance = microphone != nil ? max(micFrames, systemFrames) : systemFrames
+        if system != nil, systemAdvance > 0, time.pointee.mFlags.contains(.hostTimeValid) {
+            timeline.advance(frames: systemAdvance, firstFrameHostTime: time.pointee.mHostTime)
         }
     }
 

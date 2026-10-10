@@ -36,6 +36,9 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 - [ ] **Selected microphone missing at start.** With the selected USB microphone unplugged, start a recording: it starts with the default input.
 - [ ] **Output device changes.** During a recording, connect headphones (or switch output in System Settings) and play audio: system audio is still recorded, without a gap longer than a second.
 - [ ] **Aggregate device as input.** Create an aggregate device in Audio MIDI Setup, set it as the input, and record: the recording starts (falling back to the default input or to system audio only) instead of failing.
+- [ ] **Echo cancellation.** Enable echo cancellation, play speech through the built-in speakers (no headphones), and record 30 s in separate-files mode without speaking. Repeat with echo cancellation off. The microphone track with echo cancellation contains clearly less of the played speech. Note: other audio is played and recorded about 8 dB quieter while echo cancellation is on (expected, design D6).
+- [ ] **Echo cancellation alignment.** With echo cancellation on, record separate files while speaking and playing music; in an audio editor the voice in both tracks (direct and via speakers) lines up to within about 10 ms. Repeat with a second microphone model if available.
+- [ ] **Echo cancellation keeps your voice.** With echo cancellation on and audio playing through the speakers, speak normally: your voice is clearly present in the microphone track.
 - [ ] **Level meters.** While recording, speaking moves only the microphone meter, and playing audio moves only the system audio meter.
 
 ## Recording output

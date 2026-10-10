@@ -6,7 +6,7 @@ import Foundation
 /// Headless end-to-end recording for manual verification over SSH (DEBUG builds only).
 ///
 ///     open kRecord.app --args -KRDebugRecord 60 [-KRDebugSources all|mic|system]
-///         [-KRDebugFormat aac|alac|wav] [-KRDebugSeparate YES]
+///         [-KRDebugFormat aac|alac|wav] [-KRDebugSeparate YES] [-KRDebugEchoCancellation YES]
 ///
 /// Records to `~/Music/kRecord/` through the production capture, writer, and finalizer, logs to
 /// `~/Music/kRecord/debug-recording.log`, and quits.
@@ -22,18 +22,20 @@ enum DebugRecording {
         }
         let format = defaults.string(forKey: "KRDebugFormat").flatMap(OutputFormat.init(rawValue:)) ?? .aac
         let separate = defaults.bool(forKey: "KRDebugSeparate")
+        let echoCancellation = defaults.bool(forKey: "KRDebugEchoCancellation")
 
         Task.detached {
             let folder = HomeDirectory.defaultRecordingsFolder
             let log = DebugLog(url: folder.appending(path: "debug-recording.log"))
             do {
                 try FileSystemStorageGuard().prepare(folder)
-                log.write("start: seconds=\(seconds) sources=\(sources.rawValue) format=\(format) separate=\(separate)")
+                log.write("start: seconds=\(seconds) sources=\(sources.rawValue) format=\(format) separate=\(separate) echoCancellation=\(echoCancellation)")
                 if sources.contains(.microphone) {
                     log.write("microphone permission: \(await AVCaptureDevice.requestAccess(for: .audio))")
                 }
 
-                let engine = AggregateCaptureEngine()
+                let engine: any CaptureEngine = echoCancellation
+                    ? VoiceProcessingCaptureEngine() : AggregateCaptureEngine()
                 let events = engine.events()
                 Task { for await event in events { log.write("event: \(event)") } }
                 let started = Date()

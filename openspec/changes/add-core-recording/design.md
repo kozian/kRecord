@@ -68,6 +68,10 @@ When echo cancellation is enabled, the microphone is captured by `AVAudioEngine.
   - Other audio is ducked by about 7.6 dB even with `duckingLevel: .min` and advanced ducking off, and the tap captures the ducked signal. The system track is therefore quieter in this mode. This is documented in the manual QA checklist.
   - While voice processing runs, the output device exposes extra input streams. The tap buffer index is computed after the engine starts (D2 buffer layout).
   - The voice-processing engine drives the output, so it also serves as the keep-alive (D2).
+- **Implementation findings:**
+  - Voice processing must start before the system aggregate. Started after it, it reconfigures the output device under the running aggregate and the system track loses about 30% of its frames.
+  - Microphone buffers (4800 frames, exactly 100 ms apart) are placed on the system timeline through a host-time anchor that the aggregate IOProc publishes every cycle (`TimelineAnchor`, sequence lock). Buffers before the timeline starts, or overlapping already written audio, are trimmed; late buffers are preceded by silence. This also absorbs gaps from aggregate rebuilds.
+  - The buffers' host time does not include the voice-processing delay: the API reports about 1.5 ms, but the measured delay is 38.7 ms. That measured constant is subtracted; strong clicks then land within −2…+8 ms of the direct-capture alignment. The QA checklist re-checks this with a different microphone.
 
 ### D7. Storage guard
 Before starting, verify the folder exists or can be created and is writable (by creating and deleting a probe file). During recording, check `volumeAvailableCapacityForImportantUsage` every 5 s and stop with a "disk full" error below a 500 MB reserve, which leaves room for finalization. Any write error from the writer, or the folder disappearing, also stops the recording with the matching error; intermediate files written so far are kept.
