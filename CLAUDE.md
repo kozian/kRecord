@@ -15,6 +15,12 @@ rm -rf build/last.xcresult
 - Build and test commands need the shell sandbox disabled (keychain and audio access).
 - SourceKit diagnostics such as "Cannot find type … in scope" or "No such module 'Testing'" are false positives; trust `xcodebuild`.
 
+## Versions and releases
+
+- The version lives only in `Config/Version.xcconfig`; do not set `MARKETING_VERSION` or `CURRENT_PROJECT_VERSION` in the project file.
+- Distributions are made with `scripts/release.sh <MAJOR.MINOR.PATCH>` (`--dry-run` to try), never by hand: it tests, versions, builds, verifies, commits, tags, and packages `build/dist/kRecord-<version>.zip`. Archive finished OpenSpec changes before releasing so the generated `CHANGELOG.md` section includes them. Set `RELEASE_COMMIT_TRAILER` to append a trailer (e.g. the Co-Authored-By line) to the release commit.
+- Version bump: new behavior → minor, fixes only → patch (pre-1.0).
+
 ## Verifying audio on real hardware
 
 DEBUG builds have a headless recording harness (`kRecord/Debug/DebugRecording.swift`):

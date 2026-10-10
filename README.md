@@ -29,6 +29,18 @@ xcodebuild -project kRecord.xcodeproj -scheme kRecord -derivedDataPath build/Der
 
 Run the unit tests by replacing `build` with `test` in either command.
 
+## Releases
+
+Versions follow semantic versioning (`MAJOR.MINOR.PATCH`, set in `Config/Version.xcconfig`); the build number is the git commit count of the release commit. To make a release, archive the finished OpenSpec changes, commit, and run:
+
+```sh
+scripts/release.sh 0.3.0            # add --dry-run to try it without committing
+```
+
+It runs the tests, sets the version, adds a section to [CHANGELOG.md](CHANGELOG.md) from the archived changes, builds and verifies the signed Release app, commits "Release 0.3.0", tags `v0.3.0`, and writes `build/dist/kRecord-0.3.0.zip` with a `.sha256` checksum.
+
+On another Mac, unzip the app into Applications and allow it once in System Settings → Privacy & Security ("Open Anyway"), since it is not notarized.
+
 ## Manual testing
 
 Hardware-dependent behavior is checked by hand with [docs/manual-qa-checklist.md](docs/manual-qa-checklist.md).
