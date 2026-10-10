@@ -22,14 +22,14 @@
 
 ## 4. Settings
 
-- [ ] 4.1 Implement `SettingsStore` (@Observable, UserDefaults) with all six settings (including "Save as m4a", default on) and spec defaults, producing a `RecordingSettings` snapshot; verify with unit tests for defaults and persistence round-trip using an isolated UserDefaults suite
-- [ ] 4.2 Implement destination folder handling: default real `~/Music/kRecord/` path, security-scoped bookmark save/resolve, revert to default with a notice flag on failure; verify with unit tests (stale or missing bookmark → default + notice)
-- [ ] 4.3 Implement `AudioDeviceCatalog` (input devices UID + name, change notifications); verify with a unit test that the list is non-empty on a Mac with a built-in microphone, and add manual checks for hot-plugging to the QA checklist
+- [x] 4.1 Implement `SettingsStore` (@Observable, UserDefaults) with all six settings (including "Save as m4a", default on) and spec defaults, producing a `RecordingSettings` snapshot; verify with unit tests for defaults and persistence round-trip using an isolated UserDefaults suite
+- [x] 4.2 Implement destination folder handling: default real `~/Music/kRecord/` path, security-scoped bookmark save/resolve, revert to default with a notice flag on failure; verify with unit tests (stale or missing bookmark → default + notice)
+- [x] 4.3 Implement `AudioDeviceCatalog` (input devices UID + name, change notifications); verify with a unit test that the list is non-empty on a Mac with a built-in microphone, and add manual checks for hot-plugging to the QA checklist
 - [ ] 4.4 Build the Settings window (`Settings` scene, `Form`: folder path + Choose… + Reveal in Finder, microphone picker, "Save as m4a" toggle, separate-files toggle, echo-cancellation toggle, menu-bar-time toggle; recording-related controls disabled while recording); verify manually and add settings items to the QA checklist
 
 ## 5. Permissions
 
-- [ ] 5.1 Implement `PermissionsManager`: microphone status/request via AVCaptureDevice, system audio prompt trigger (short tap + IO start), system audio status = unknown, refresh on app activation; verify with unit tests on the state mapping using a fake authorization provider
+- [x] 5.1 Implement `PermissionsManager`: microphone status/request via AVCaptureDevice, system audio prompt trigger (short tap + IO start), system audio status = unknown, refresh on app activation; verify with unit tests on the state mapping using a fake authorization provider
 - [ ] 5.2 Request both permissions on first launch (flag in settings) and implement "Open System Settings" deep links for the Microphone and Audio Capture privacy panes; verify manually on a fresh `tccutil reset` and add permission items to the QA checklist
 
 ## 6. Capture engine

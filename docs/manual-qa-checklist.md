@@ -60,6 +60,9 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 
 ## Settings
 
+- [ ] **Microphone list, hot-plug.** With the main window or Settings open, plug in a USB microphone: it appears in the microphone picker within about a second. Unplug it: it disappears from the list (a remembered selection stays visible as unavailable, see the main window section).
+- [ ] **No aggregate devices.** Create an aggregate device in Audio MIDI Setup: it does not appear in the microphone picker, and neither does "kRecord Capture" during a recording.
+
 ## Permissions
 
 ## Localization

@@ -55,6 +55,13 @@ enum CoreAudioHAL {
         return AudioObjectGetPropertyData(device, &address, 0, nil, &size, &alive) == noErr && alive != 0
     }
 
+    static func transportType(of device: AudioObjectID) -> UInt32? {
+        var address = address(kAudioDevicePropertyTransportType)
+        var transport: UInt32 = 0
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        return AudioObjectGetPropertyData(device, &address, 0, nil, &size, &transport) == noErr ? transport : nil
+    }
+
     static func nominalSampleRate(of device: AudioObjectID) -> Double? {
         var address = address(kAudioDevicePropertyNominalSampleRate)
         var rate: Float64 = 0
