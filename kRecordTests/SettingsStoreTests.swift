@@ -30,6 +30,7 @@ struct SettingsStoreTests {
         #expect(!store.echoCancellation)
         #expect(!store.showTimeInMenuBar)
         #expect(store.showsMenuBarItem)
+        #expect(store.warnsAboutSilentSystemAudio)
         #expect(!store.hasRequestedPermissions)
         #expect(!store.showsFolderUnavailableNotice)
         #expect(store.recordsMicrophone)
@@ -67,6 +68,7 @@ struct SettingsStoreTests {
         first.echoCancellation = true
         first.showTimeInMenuBar = true
         first.showsMenuBarItem = false
+        first.warnsAboutSilentSystemAudio = false
         first.hasRequestedPermissions = true
 
         let second = makeStore()
@@ -77,6 +79,7 @@ struct SettingsStoreTests {
         #expect(second.echoCancellation)
         #expect(second.showTimeInMenuBar)
         #expect(!second.showsMenuBarItem)
+        #expect(!second.warnsAboutSilentSystemAudio)
         #expect(second.hasRequestedPermissions)
     }
 

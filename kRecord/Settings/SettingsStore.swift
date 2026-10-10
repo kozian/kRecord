@@ -23,6 +23,7 @@ final class SettingsStore {
         static let echoCancellation = "echoCancellation"
         static let showTimeInMenuBar = "showTimeInMenuBar"
         static let showsMenuBarItem = "showsMenuBarItem"
+        static let warnsAboutSilentSystemAudio = "warnsAboutSilentSystemAudio"
         static let recordsMicrophone = "recordsMicrophone"
         static let recordsSystemAudio = "recordsSystemAudio"
         static let requestedPermissions = "requestedPermissions"
@@ -164,6 +165,19 @@ final class SettingsStore {
             return defaults.object(forKey: Key.showsMenuBarItem) as? Bool ?? true
         }
         set { withMutation(keyPath: \.showsMenuBarItem) { defaults.set(newValue, forKey: Key.showsMenuBarItem) } }
+    }
+
+    /// The main window warns when a recording has no system audio (permissions spec). Default on.
+    var warnsAboutSilentSystemAudio: Bool {
+        get {
+            access(keyPath: \.warnsAboutSilentSystemAudio)
+            return defaults.object(forKey: Key.warnsAboutSilentSystemAudio) as? Bool ?? true
+        }
+        set {
+            withMutation(keyPath: \.warnsAboutSilentSystemAudio) {
+                defaults.set(newValue, forKey: Key.warnsAboutSilentSystemAudio)
+            }
+        }
     }
 
     // MARK: Sources

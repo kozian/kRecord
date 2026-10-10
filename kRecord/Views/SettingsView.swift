@@ -43,6 +43,7 @@ struct SettingsView: View {
                 Text("Echo cancellation removes sound from your speakers that the microphone picks up. Other audio may be quieter while it is on.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Toggle("Warn when a recording has no system audio", isOn: bound(\.warnsAboutSilentSystemAudio))
             }
 
             Section("Menu Bar") {

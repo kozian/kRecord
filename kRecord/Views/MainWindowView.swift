@@ -26,14 +26,23 @@ struct MainWindowView: View {
                 }
             }
 
-            VStack(spacing: 10) {
-                SourceLevelMeter(title: "Microphone", isOn: sourceBinding(\.recordsMicrophone),
-                                 isLocked: model.recordingSettingsAreLocked,
-                                 value: session.levels.microphone.meterValue())
-                SourceLevelMeter(title: "System audio", isOn: sourceBinding(\.recordsSystemAudio),
-                                 isLocked: model.recordingSettingsAreLocked,
-                                 value: session.levels.system.meterValue())
+            // Checkbox, label, and meter in one row per source; the labels share a column so
+            // both meters start at the same x.
+            Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 8) {
+                GridRow {
+                    Toggle("Microphone", isOn: sourceBinding(\.recordsMicrophone))
+                    LevelMeter(value: session.levels.microphone.meterValue())
+                        .opacity(model.settings.recordsMicrophone ? 1 : 0.4)
+                }
+                GridRow {
+                    Toggle("System", isOn: sourceBinding(\.recordsSystemAudio))
+                    LevelMeter(value: session.levels.system.meterValue())
+                        .opacity(model.settings.recordsSystemAudio ? 1 : 0.4)
+                }
             }
+            .toggleStyle(.checkbox)
+            .font(.caption)
+            .disabled(model.recordingSettingsAreLocked)
 
             // A microphone symbol instead of a text label leaves the picker room for full device
             // names in the narrow window; the picker keeps "Microphone" as its accessibility label.
@@ -61,7 +70,11 @@ struct MainWindowView: View {
 
             silentSystemAudioNote
         }
-        .padding(16)
+        // With the title bar hidden, the content starts below the strip of the window buttons
+        // (top safe area); 7.5 pt more makes the gap from the window buttons to the digits equal to
+        // the gap from the digits to the record button (27.5 pt, measured).
+        .padding([.horizontal, .bottom], 16)
+        .padding(.top, 7.5)
         .frame(width: 310)
     }
 
@@ -122,17 +135,30 @@ struct MainWindowView: View {
     /// A quiet note, not a banner: an all-silent system track also happens when nothing played,
     /// so this only points at the permission as one possible cause (permissions spec).
     @ViewBuilder
+    private var silentNoteActions: some View {
+        Button("Open System Settings") { model.permissions.openSettings(.systemAudio) }
+            .fixedSize()
+        // Turns the warning off; it can be turned on again in Settings.
+        Button("Don't show again") { model.settings.warnsAboutSilentSystemAudio = false }
+            .fixedSize()
+    }
+
+    @ViewBuilder
     private var silentSystemAudioNote: some View {
-        if session.lastResult?.systemAudioSilent == true {
+        if session.lastResult?.systemAudioSilent == true, model.settings.warnsAboutSilentSystemAudio {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Image(systemName: "speaker.slash")
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("The last recording has no system audio. It may be blocked in privacy settings.")
                         .fixedSize(horizontal: false, vertical: true)
-                    Button("Open System Settings") { model.permissions.openSettings(.systemAudio) }
-                        .buttonStyle(.link)
-                        .foregroundStyle(Color.accentColor)
+                    // Side by side when they fit (English), otherwise one below the other (Russian).
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 12) { silentNoteActions }
+                        VStack(alignment: .leading, spacing: 2) { silentNoteActions }
+                    }
+                    .buttonStyle(.link)
+                    .foregroundStyle(Color.accentColor)
                 }
                 Spacer(minLength: 0)
                 Button {

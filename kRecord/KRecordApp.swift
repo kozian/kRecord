@@ -22,6 +22,9 @@ struct KRecordApp: App {
         Window("kRecord", id: "main") {
             MainWindowView(model: model)
         }
+        // No title bar, window buttons kept; the window is dragged by its background (refine-main-window D3).
+        .windowStyle(.hiddenTitleBar)
+        .windowBackgroundDragBehavior(.enabled)
         .windowResizability(.contentSize)
 
         // Shown while the "Show in menu bar" setting is on (design D1); macOS also clears it when

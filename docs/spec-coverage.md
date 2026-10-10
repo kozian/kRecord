@@ -85,7 +85,9 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Available during a recording | `ViewSnapshotTests.mainWindowRecording` (icon buttons enabled); QA [Main window] Buttons during a recording |
 | No source turned on | `AppModelTests.bothSourcesOffDisableTheControl`, `ViewSnapshotTests.mainWindowSourceSwitches`; QA [Recording session] Both off |
 | Turning the microphone off | `ViewSnapshotTests.mainWindowSourceSwitches` (empty microphone meter while recording); QA [Recording session] Microphone off |
-| Checkbox labels | `ViewSnapshotTests.mainWindowIdle` (English and Russian); QA [Settings] Source labels |
+| Checkbox labels | `ViewSnapshotTests.mainWindowIdle`, `mainWindowRecording` (English and Russian); QA [Settings] Source labels |
+| Window buttons without a title | remote control `snapshotMainWindow` (drawing of the running window); QA [Main window] No title bar |
+| Dragging by the background | QA [Main window] No title bar |
 | Checkboxes on by default / state remembered | `SettingsStoreTests.firstLaunchDefaults`, `sourceSwitchesPersistAndReachTheSnapshot`; QA [Recording session] Switches remembered and locked |
 | Checkboxes locked during recording | `ViewSnapshotTests.mainWindowSourceSwitches` (disabled checkboxes while recording); QA [Recording session] Switches remembered and locked |
 
@@ -112,7 +114,8 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Microphone prompt text | `Info.plist` / `InfoPlist.xcstrings` (checked in the built bundle); QA [Permissions] |
 | Permission granted later | `PermissionsManagerTests.refreshPicksUpChangesFromSystemSettings`; QA [Permissions] Granting later |
 | Status not determinable | `PermissionsManagerTests.unknownSystemAudioKeepsRecordingEnabled` |
-| Silent system audio hint | `RecordingWriterTests.silentSystemTrackIsReported`, `RecordingSessionTests.silentSystemAudioIsReported`, `ViewSnapshotTests.mainWindowSilentSystemAudioHint`; QA [Main window] |
+| Silent system audio hint | `RecordingWriterTests.silentSystemTrackIsReported`, `RecordingSessionTests.silentSystemAudioIsReported`, `ViewSnapshotTests.mainWindowSilentSystemAudioHint`; QA [Main window] System audio hint |
+| Hint turned off | `ViewSnapshotTests.mainWindowSilentSystemAudioHint` (no hint with the setting off), `SettingsStoreTests` (default on, persists); QA [Main window] System audio hint |
 | Only system audio permitted | `PermissionsManagerTests.permittedSourcesFollowStatuses`; QA [Permissions] |
 | No permissions | `PermissionsManagerTests.permittedSourcesFollowStatuses`, `RecordingSessionTests.startBlockedWithoutPermissions` |
 | Open microphone privacy pane | `PermissionsManagerTests.opensThePrivacyPanes`; QA [Permissions] Deep links |
@@ -122,7 +125,7 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 
 | Scenario | Checked by |
 |---|---|
-| Settings window contents | `ViewSnapshotTests.settingsDefault`, `settingsLockedWhileRecording` (five switches); QA [Settings] Window contents |
+| Settings window contents | `ViewSnapshotTests.settingsDefault`, `settingsLockedWhileRecording` (six switches); QA [Settings] Window contents |
 | Save format explained | `ViewSnapshotTests.settingsDefault` (English and Russian); QA [Settings] Window contents |
 | Settings shown without scrolling | harness (remote control `logState`: no scroller, document fits, in English and Russian, with and without the folder notice); QA [Settings] No scroll bar |
 | First launch defaults | `SettingsStoreTests.firstLaunchDefaults`, `realDefaultFolderIsMusicKRecord`; QA [Settings] |

@@ -78,6 +78,17 @@
         }
       }
     },
+    "Don't show again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Больше не показывать"
+          }
+        }
+      }
+    },
     "Echo cancellation" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -496,13 +507,13 @@
         }
       }
     },
-    "System audio" : {
+    "System" : {
       "extractionState" : "manual",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Системный звук"
+            "value" : "Система"
           }
         }
       }
@@ -591,6 +602,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Включите микрофон или системный звук, чтобы записывать."
+          }
+        }
+      }
+    },
+    "Warn when a recording has no system audio" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предупреждать, если в записи нет системного звука"
           }
         }
       }

@@ -45,6 +45,15 @@ enum DebugControl {
         case "hideMenuBarItem", "showMenuBarItem":
             model.settings.showsMenuBarItem = command == "showMenuBarItem"
             log("showsMenuBarItem=\(model.settings.showsMenuBarItem)")
+        case "snapshotMainWindow":
+            // The window's frame view, title bar and window buttons included, drawn into a PNG.
+            if let frameView = mainWindow?.contentView?.superview,
+               let bitmap = frameView.bitmapImageRepForCachingDisplay(in: frameView.bounds) {
+                frameView.cacheDisplay(in: frameView.bounds, to: bitmap)
+                let url = HomeDirectory.defaultRecordingsFolder.appending(path: "main-window.png")
+                try? bitmap.representation(using: .png, properties: [:])?.write(to: url)
+                log("snapshot \(Int(frameView.bounds.width))x\(Int(frameView.bounds.height)) -> \(url.path)")
+            }
         case "startRecording":
             Task {
                 await model.startRecording()
