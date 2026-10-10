@@ -37,3 +37,22 @@ struct Banner: View {
         .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
     }
 }
+
+/// A small, quiet square icon button with a tooltip, for secondary actions.
+struct IconButton: View {
+    let systemImage: String
+    let help: LocalizedStringKey
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .frame(width: 22, height: 22)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .foregroundStyle(.secondary)
+        .help(Text(help))
+        .accessibilityLabel(Text(help))
+    }
+}

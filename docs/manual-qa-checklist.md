@@ -76,6 +76,10 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 - [ ] **Microphone permission warning.** Turn the microphone permission off in System Settings: the window shows a warning with "Open System Settings", which opens Privacy & Security → Microphone. Recording still works (system audio only).
 - [ ] **Error display.** Provoke an error (for example eject the destination drive during a recording): the error message appears in the window and stays until dismissed with ✕ or until a new recording starts.
 - [ ] **System audio hint.** With the system audio permission off (or simply nothing playing), record 10 s and stop: the hint "No system audio was captured…" appears with "Open System Settings", which opens the pane where the app can be allowed to record system audio; ✕ dismisses it.
+- [ ] **Recordings folder button.** Click the folder icon to the right of the microphone picker: the destination folder opens in Finder (also when it does not exist yet, and with a custom folder chosen in Settings). Hovering shows the tooltip "Show Recordings in Finder".
+- [ ] **Settings button.** Click the gear icon: the Settings window opens in front. Hovering shows "Settings".
+- [ ] **Buttons during a recording.** While recording, both icon buttons work; the microphone picker is disabled.
+- [ ] **Narrow window.** In English and Russian the main window shows all texts in full, including "Системный по умолчанию" and an unplugged microphone as "<name> (недоступен)"; hovering the microphone symbol shows "Microphone".
 
 ## Menu bar
 - [ ] **Icon states.** The menu bar item is present while the app runs, also after closing the main window. It is a grey template icon when idle (check in light and dark appearance, and with a coloured wallpaper) and red while recording.

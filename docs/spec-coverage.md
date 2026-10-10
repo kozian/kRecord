@@ -77,6 +77,9 @@ Every scenario of the `add-core-recording` specs and where it is checked: an aut
 | Microphone permission missing | `ViewSnapshotTests.mainWindowMicrophoneDenied`; QA [Main window] |
 | Both permissions missing | `AppModelTests.cannotStartWhenNothingIsPermitted`; `ViewSnapshotTests.mainWindowNothingPermitted` (cannot be provoked by hand: the system audio status is unknown) |
 | Error shown | `ViewSnapshotTests.mainWindowError`; QA [Main window] Error display |
+| Open recordings folder | `AppModelTests.revealCreatesAndOpensTheDestinationFolder`; QA [Main window] Recordings folder button |
+| Open settings from the main window | QA [Main window] Settings button |
+| Available during a recording | `ViewSnapshotTests.mainWindowRecording` (icon buttons enabled); QA [Main window] Buttons during a recording |
 | No source turned on | `AppModelTests.bothSourcesOffDisableTheControl`, `ViewSnapshotTests.mainWindowSourceSwitches`; QA [Recording session] Both off |
 | Turning the microphone off | `ViewSnapshotTests.mainWindowSourceSwitches` (empty microphone meter while recording); QA [Recording session] Microphone off |
 | Checkboxes on by default / state remembered | `SettingsStoreTests.firstLaunchDefaults`, `sourceSwitchesPersistAndReachTheSnapshot`; QA [Recording session] Switches remembered and locked |

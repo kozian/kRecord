@@ -15,14 +15,24 @@ final class AppModel {
     let quit: QuitCoordinator
 
     @ObservationIgnored private var activationObserver: NSObjectProtocol?
+    @ObservationIgnored private let openInFinder: @MainActor (URL) -> Void
 
     init(settings: SettingsStore, devices: AudioDeviceCatalog, permissions: PermissionsManager,
-         session: RecordingSession, confirmStopAndQuit: @escaping @MainActor () async -> Bool) {
+         session: RecordingSession, confirmStopAndQuit: @escaping @MainActor () async -> Bool,
+         openInFinder: @escaping @MainActor (URL) -> Void = { NSWorkspace.shared.open($0) }) {
         self.settings = settings
         self.devices = devices
         self.permissions = permissions
         self.session = session
+        self.openInFinder = openInFinder
         quit = QuitCoordinator(session: session, confirmStopAndQuit: confirmStopAndQuit)
+    }
+
+    /// Opens the destination folder in Finder, creating it first when no recording has made it yet.
+    func revealRecordingsFolder() {
+        let folder = settings.destinationFolder
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        openInFinder(folder)
     }
 
     static func live() -> AppModel {

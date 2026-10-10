@@ -24,6 +24,7 @@ final class TestApp {
     let provider = FakeAuthorizationProvider()
     let folderAccess = FakeFolderAccess()
     let confirmation = QuitConfirmation()
+    let openedInFinder = OpenedURLs()
     let settings: SettingsStore
     let devices: AudioDeviceCatalog
     let permissions: PermissionsManager
@@ -49,11 +50,13 @@ final class TestApp {
             refreshInterval: nil))
         let devices = AudioDeviceCatalog(list: { inputDevices }, observeChanges: false)
         let confirmation = confirmation
+        let openedInFinder = openedInFinder
         self.settings = settings
         self.devices = devices
         self.permissions = permissions
         self.session = session
         model = AppModel(settings: settings, devices: devices, permissions: permissions, session: session,
-                         confirmStopAndQuit: { confirmation.ask() })
+                         confirmStopAndQuit: { confirmation.ask() },
+                         openInFinder: { openedInFinder.record($0) })
     }
 }

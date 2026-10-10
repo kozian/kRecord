@@ -26,7 +26,7 @@ struct SettingsView: View {
                 }
                 HStack {
                     Button("Choose…", action: chooseFolder).disabled(isLocked)
-                    Button("Show in Finder", action: revealFolder)
+                    Button("Show in Finder") { model.revealRecordingsFolder() }
                 }
             }
 
@@ -75,12 +75,6 @@ struct SettingsView: View {
         } catch {
             folderError = true
         }
-    }
-
-    private func revealFolder() {
-        let folder = settings.destinationFolder
-        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        NSWorkspace.shared.open(folder)
     }
 
     /// The path with the real home folder shown as `~`.

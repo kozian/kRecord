@@ -72,6 +72,22 @@ struct AppModelTests {
         #expect(!app.model.canToggleRecording)
     }
 
+    // MARK: Recordings folder
+
+    @Test func revealCreatesAndOpensTheDestinationFolder() throws {
+        let app = TestApp()
+        let folder = FileManager.default.temporaryDirectory
+            .appending(path: "AppModelTests-\(UUID().uuidString)/kRecord", directoryHint: .isDirectory)
+        app.folderAccess.addFolder(folder)
+        try app.settings.chooseDestinationFolder(folder)
+        defer { try? FileManager.default.removeItem(at: folder.deletingLastPathComponent()) }
+
+        app.model.revealRecordingsFolder()
+        var isDirectory: ObjCBool = false
+        #expect(FileManager.default.fileExists(atPath: folder.path, isDirectory: &isDirectory) && isDirectory.boolValue)
+        #expect(app.openedInFinder.all == [folder])
+    }
+
     // MARK: First launch
 
     @Test func firstLaunchRequestsPermissionsOnce() async {

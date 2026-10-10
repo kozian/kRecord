@@ -16,7 +16,8 @@
 ## Decisions
 
 ### D1. Width 300 pt, verified in Russian
-The fixed width drops from 360 to 300 pt (260 pt of content). The microphone row then holds the "Microphone" label, the picker (which truncates long device names on its own), and two 22 pt buttons; the timer, record button, meters, and banners wrap or fit within 260 pt. The width is checked with Russian snapshots ("Системный по умолчанию" is the longest default text); if anything is cut, the width grows in steps of 10 pt rather than shortening translations.
+The fixed width drops from 360 to 310 pt with 16 pt padding (278 pt of content; first tried at 300 pt with 20 pt padding). The timer, record button, meters, and banners wrap or fit within 260 pt. The width is checked with Russian snapshots ("Системный по умолчанию" is the longest default text).
+- **Microphone row (decided with the user during implementation):** at 300 pt the "Microphone" text label left too little room and the picker cut off "Системный по умолчанию" and "(недоступен)". Keeping the text label would need about 350 pt. Instead the label is replaced by a secondary `mic` symbol with a "Microphone" tooltip; the picker keeps "Microphone" as its accessibility label and takes the remaining width. With that, 310 pt shows "Системный по умолчанию" and "<name> (недоступен)" in full.
 - **Alternative:** no fixed width (fit to content) — the window would change width when banners appear or devices change.
 
 ### D2. Icon buttons

@@ -375,6 +375,17 @@
         }
       }
     },
+    "Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки"
+          }
+        }
+      }
+    },
     "Settings…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -404,6 +415,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показывать время записи в строке меню"
+          }
+        }
+      }
+    },
+    "Show Recordings in Finder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать записи в Finder"
           }
         }
       }
