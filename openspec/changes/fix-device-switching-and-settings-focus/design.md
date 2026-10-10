@@ -56,7 +56,7 @@ The form gets `.scrollDisabled(true)` and the `Settings` scene `.windowResizabil
 - **Verification:** the DEBUG remote control logs, for the open Settings window, whether its scroll view shows a scroller and the document height against the visible height, in English and Russian, with and without the folder notice.
 
 ### D7. Colon after the microphone symbol
-In the main window the microphone symbol before the device picker is followed by a colon ("🎤:"), so it reads as a label of the picker. The colon is part of the hidden, secondary-styled label; the picker's accessibility label stays "Microphone".
+In the main window the microphone symbol before the device picker is followed by a colon ("🎤:"), so it reads as a label of the picker. The colon is part of the hidden, secondary-styled label; the picker's accessibility label stays "Microphone". Symbol, colon, and picker sit with no spacing between them, since the picker's bezel has its own inset; a 4 pt gap looked detached.
 
 ## Risks / Trade-offs
 

@@ -38,17 +38,20 @@ struct MainWindowView: View {
             // A microphone symbol instead of a text label leaves the picker room for full device
             // names in the narrow window; the picker keeps "Microphone" as its accessibility label.
             HStack(spacing: 4) {
-                HStack(spacing: 1) {
-                    Image(systemName: "mic")
-                    Text(verbatim: ":")
+                // No spacing before the picker: its bezel already has an inset of its own.
+                HStack(spacing: 0) {
+                    HStack(spacing: 0) {
+                        Image(systemName: "mic")
+                        Text(verbatim: ":")
+                    }
+                    .foregroundStyle(.secondary)
+                    .help(Text("Microphone"))
+                    .accessibilityHidden(true)
+                    MicrophonePicker(settings: model.settings, devices: model.devices,
+                                     isLocked: model.recordingSettingsAreLocked)
+                        .labelsHidden()
+                        .frame(maxWidth: .infinity)
                 }
-                .foregroundStyle(.secondary)
-                .help(Text("Microphone"))
-                .accessibilityHidden(true)
-                MicrophonePicker(settings: model.settings, devices: model.devices,
-                                 isLocked: model.recordingSettingsAreLocked)
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity)
                 IconButton(systemImage: "folder", help: "Show Recordings in Finder") {
                     model.revealRecordingsFolder()
                 }
