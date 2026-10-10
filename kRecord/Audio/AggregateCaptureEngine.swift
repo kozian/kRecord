@@ -9,16 +9,29 @@ import Synchronization
 actor AggregateCaptureEngine: CaptureEngine {
     static let ringSeconds = 10.0
 
-    private struct Running {
+    /// One capture from `start` to `stop`. Survives aggregate rebuilds (design D3).
+    private struct Capture {
+        let configuration: CaptureConfiguration
+        let sampleRate: Double
+        let tap: ProcessTap?
+        let microphone: RingBuffer?
+        let system: RingBuffer?
+        let levels: LevelSnapshot
+    }
+
+    /// The current aggregate device; replaced when the input device changes.
+    private struct Device {
         let aggregate: AudioObjectID
         let ioProc: AudioDeviceIOProcID
-        let tap: ProcessTap?
-        let context: AggregateIOContext
+        let clock: AudioObjectID
+        let input: AudioObjectID?
     }
 
     private let eventHub = CaptureEventHub()
-    private var running: Running?
+    private var capture: Capture?
+    private var device: Device?
     private var keepAlive: SilentOutput?
+    private var monitor: DeviceMonitor?
 
     init() {}
 
@@ -27,7 +40,7 @@ actor AggregateCaptureEngine: CaptureEngine {
     }
 
     func start(_ configuration: CaptureConfiguration) async throws(CaptureError) -> CaptureStreams {
-        precondition(running == nil, "capture already running")
+        precondition(capture == nil, "capture already running")
         guard !configuration.sources.isEmpty else { throw .noSources }
 
         let input = configuration.sources.contains(.microphone)
@@ -37,11 +50,9 @@ actor AggregateCaptureEngine: CaptureEngine {
 
         // Everything created below is released again if start fails.
         var tap: ProcessTap?
-        var aggregate: AudioObjectID?
         var started = false
         defer {
             if !started {
-                if let aggregate { AudioHardwareDestroyAggregateDevice(aggregate) }
                 tap?.destroy()
                 keepAlive?.stop()
                 keepAlive = nil
@@ -57,40 +68,136 @@ actor AggregateCaptureEngine: CaptureEngine {
             tap = try ProcessTap.makeGlobalStereo()
         }
 
-        let layout = try Self.makeAggregate(input: input, tap: tap)
-        aggregate = layout.aggregate
-        let rate = CoreAudioHAL.nominalSampleRate(of: layout.aggregate) ?? OutputFormat.sampleRate
+        // The sample rate of the first aggregate that works defines the recording.
+        let probe = try Self.makeAggregate(candidates: Self.inputCandidates(input, sources: configuration.sources),
+                                           tap: tap, sampleRate: nil)
+        let rate = CoreAudioHAL.nominalSampleRate(of: probe.layout.aggregate) ?? OutputFormat.sampleRate
         let capacity = Int(rate * Self.ringSeconds)
-        let context = AggregateIOContext(
-            microphone: input != nil
+        // The microphone ring exists even without a device so a later device can join and the
+        // track stays aligned (silence is written while there is no microphone).
+        let capture = Capture(
+            configuration: configuration, sampleRate: rate, tap: tap,
+            microphone: configuration.sources.contains(.microphone)
                 ? RingBuffer(channels: CaptureStreams.microphoneChannels, capacityFrames: capacity) : nil,
-            system: tap != nil
+            system: captureSystem
                 ? RingBuffer(channels: CaptureStreams.systemChannels, capacityFrames: capacity) : nil,
-            levels: LevelSnapshot(),
-            micBufferIndex: layout.micBufferIndex,
-            tapBufferIndex: layout.tapBufferIndex)
-        let ioProc = try Self.startIO(on: layout.aggregate, context: context)
-
-        running = Running(aggregate: layout.aggregate, ioProc: ioProc, tap: tap, context: context)
+            levels: LevelSnapshot())
+        do {
+            device = try Self.startIO(layout: probe.layout, input: probe.input, capture: capture)
+        } catch {
+            AudioHardwareDestroyAggregateDevice(probe.layout.aggregate)
+            throw error
+        }
+        self.capture = capture
         started = true
-        return CaptureStreams(sampleRate: rate, microphone: context.microphone, system: context.system,
-                              levels: context.levels)
+
+        let monitor = DeviceMonitor { [weak self] in
+            Task { await self?.handleDeviceChange() }
+        }
+        monitor.start()
+        monitor.watchInput(probe.input)
+        self.monitor = monitor
+
+        return CaptureStreams(sampleRate: rate, microphone: capture.microphone, system: capture.system,
+                              levels: capture.levels)
     }
 
     func stop() async {
-        if let running {
-            AudioDeviceStop(running.aggregate, running.ioProc)
-            AudioDeviceDestroyIOProcID(running.aggregate, running.ioProc)
-            AudioHardwareDestroyAggregateDevice(running.aggregate)
-            running.tap?.destroy()
-        }
-        running = nil
+        monitor?.stop()
+        monitor = nil
+        tearDownDevice()
+        capture?.tap?.destroy()
+        capture = nil
         keepAlive?.stop()
         keepAlive = nil
         eventHub.finish()
     }
 
+    // MARK: - Device changes (design D3)
+
+    private func handleDeviceChange() {
+        guard let capture, let device else { return }
+        let desiredInput = capture.configuration.sources.contains(.microphone)
+            ? Self.resolveInputDevice(selectedUID: capture.configuration.inputDeviceUID) : nil
+        let inputLost = device.input.map { !CoreAudioHAL.isAlive($0) } ?? false
+        let inputChanged = desiredInput != device.input || inputLost
+        // Without a microphone the output device is the clock; follow the new default output.
+        let clockChanged = device.input == nil && CoreAudioHAL.defaultOutputDevice() != device.clock
+        guard inputChanged || clockChanged else { return }
+
+        tearDownDevice()
+        do throws(CaptureError) {
+            let built = try Self.makeAggregate(
+                candidates: Self.inputCandidates(desiredInput, sources: capture.configuration.sources),
+                tap: capture.tap, sampleRate: capture.sampleRate)
+            do throws(CaptureError) {
+                self.device = try Self.startIO(layout: built.layout, input: built.input, capture: capture)
+            } catch {
+                AudioHardwareDestroyAggregateDevice(built.layout.aggregate)
+                throw error
+            }
+            monitor?.watchInput(built.input)
+            if let input = built.input, input != device.input || inputLost {
+                eventHub.yield(.inputDeviceChanged(name: CoreAudioHAL.name(of: input) ?? ""))
+            }
+        } catch {
+            eventHub.yield(.failed(error))
+        }
+    }
+
+    private func tearDownDevice() {
+        guard let device else { return }
+        AudioDeviceStop(device.aggregate, device.ioProc)
+        AudioDeviceDestroyIOProcID(device.aggregate, device.ioProc)
+        AudioHardwareDestroyAggregateDevice(device.aggregate)
+        self.device = nil
+    }
+
+    /// Frames already in the rings were captured at `rate`; a new aggregate must run at it too.
+    static func matchSampleRate(of aggregate: AudioObjectID, to rate: Double) throws(CaptureError) {
+        guard CoreAudioHAL.nominalSampleRate(of: aggregate) != rate else { return }
+        var address = CoreAudioHAL.address(kAudioDevicePropertyNominalSampleRate)
+        var value = Float64(rate)
+        _ = AudioObjectSetPropertyData(aggregate, &address, 0, nil, UInt32(MemoryLayout<Float64>.size), &value)
+        guard CoreAudioHAL.nominalSampleRate(of: aggregate) == rate else { throw .sampleRateMismatch }
+    }
+
     // MARK: - Setup
+
+    /// Input devices to try, in order: the resolved device, the default input, and (when system
+    /// audio is captured) no microphone at all, which keeps the recording going with a silent
+    /// microphone track. For example, an aggregate device cannot be nested in our aggregate.
+    static func inputCandidates(_ resolved: AudioObjectID?, sources: CaptureSources) -> [AudioObjectID?] {
+        var candidates: [AudioObjectID?] = []
+        if let resolved { candidates.append(resolved) }
+        if let fallback = CoreAudioHAL.defaultInputDevice(), fallback != resolved { candidates.append(fallback) }
+        if sources.contains(.system) || candidates.isEmpty { candidates.append(nil) }
+        return candidates
+    }
+
+    /// Creates the first aggregate that works from `candidates`; with `sampleRate`, it must run at that rate.
+    static func makeAggregate(candidates: [AudioObjectID?], tap: ProcessTap?,
+                              sampleRate: Double?) throws(CaptureError) -> (layout: AggregateLayout, input: AudioObjectID?) {
+        var lastError = CaptureError.noInputDevice
+        for input in candidates {
+            if input == nil, tap == nil { break }
+            do throws(CaptureError) {
+                let layout = try makeAggregate(input: input, tap: tap)
+                if let sampleRate {
+                    do throws(CaptureError) {
+                        try matchSampleRate(of: layout.aggregate, to: sampleRate)
+                    } catch {
+                        AudioHardwareDestroyAggregateDevice(layout.aggregate)
+                        throw error
+                    }
+                }
+                return (layout, input)
+            } catch {
+                lastError = error
+            }
+        }
+        throw lastError
+    }
 
     /// The selected device if it is connected, otherwise the system default input (audio-capture spec).
     static func resolveInputDevice(selectedUID: String?) -> AudioObjectID? {
@@ -103,6 +210,7 @@ actor AggregateCaptureEngine: CaptureEngine {
 
     struct AggregateLayout {
         let aggregate: AudioObjectID
+        let clock: AudioObjectID
         let micBufferIndex: Int?
         let tapBufferIndex: Int?
     }
@@ -143,7 +251,7 @@ actor AggregateCaptureEngine: CaptureEngine {
 
         // Input buffers: the clock device's input streams, then the tap stream (design D2).
         let clockStreams = CoreAudioHAL.inputStreams(of: clock).count
-        let layout = AggregateLayout(aggregate: aggregate,
+        let layout = AggregateLayout(aggregate: aggregate, clock: clock,
                                      micBufferIndex: input != nil ? 0 : nil,
                                      tapBufferIndex: tap != nil ? clockStreams : nil)
         do {
@@ -172,22 +280,25 @@ actor AggregateCaptureEngine: CaptureEngine {
         }
     }
 
-    private static func startIO(on aggregate: AudioObjectID,
-                                context: AggregateIOContext) throws(CaptureError) -> AudioDeviceIOProcID {
+    private static func startIO(layout: AggregateLayout, input: AudioObjectID?,
+                                capture: Capture) throws(CaptureError) -> Device {
+        let context = AggregateIOContext(microphone: capture.microphone, system: capture.system,
+                                         levels: capture.levels, micBufferIndex: layout.micBufferIndex,
+                                         tapBufferIndex: layout.tapBufferIndex)
         var ioProc: AudioDeviceIOProcID?
         try CoreAudioHAL.check(
-            AudioDeviceCreateIOProcIDWithBlock(&ioProc, aggregate, nil) { _, input, _, _, _ in
+            AudioDeviceCreateIOProcIDWithBlock(&ioProc, layout.aggregate, nil) { _, input, _, _, _ in
                 context.process(input)
             },
             "AudioDeviceCreateIOProcIDWithBlock")
         guard let ioProc else { throw .coreAudio(operation: "AudioDeviceCreateIOProcIDWithBlock", status: 0) }
         do {
-            try CoreAudioHAL.check(AudioDeviceStart(aggregate, ioProc), "AudioDeviceStart")
+            try CoreAudioHAL.check(AudioDeviceStart(layout.aggregate, ioProc), "AudioDeviceStart")
         } catch {
-            AudioDeviceDestroyIOProcID(aggregate, ioProc)
+            AudioDeviceDestroyIOProcID(layout.aggregate, ioProc)
             throw error
         }
-        return ioProc
+        return Device(aggregate: layout.aggregate, ioProc: ioProc, clock: layout.clock, input: input)
     }
 }
 

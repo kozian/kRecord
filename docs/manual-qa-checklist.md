@@ -31,6 +31,11 @@ Checks for behavior that unit tests cannot cover: real audio hardware, macOS per
 - [ ] **Two apps.** Play audio in two apps at once (e.g. Music and a browser video): both are audible in the system track.
 - [ ] **Stereo image.** Play a test file panned hard left: in the system track (separate-files mode) it is in the left channel only.
 - [ ] **Multichannel interface.** With a multichannel audio interface as the input, the microphone track is mono and contains the interface's first input.
+- [ ] **Default input changes.** With the microphone set to "System Default", start recording and switch the input device in System Settings → Sound → Input. The recording continues and the new device is recorded after a gap of well under a second.
+- [ ] **Selected microphone unplugged.** Select a USB microphone explicitly, start recording, unplug it, then plug it back in. The recording continues throughout: after unplugging, the default input is recorded (or silence on a Mac without another input); after plugging back in, the USB microphone is recorded again. The selection is still the USB microphone afterwards.
+- [ ] **Selected microphone missing at start.** With the selected USB microphone unplugged, start a recording: it starts with the default input.
+- [ ] **Output device changes.** During a recording, connect headphones (or switch output in System Settings) and play audio: system audio is still recorded, without a gap longer than a second.
+- [ ] **Aggregate device as input.** Create an aggregate device in Audio MIDI Setup, set it as the input, and record: the recording starts (falling back to the default input or to system audio only) instead of failing.
 - [ ] **Level meters.** While recording, speaking moves only the microphone meter, and playing audio moves only the system audio meter.
 
 ## Recording output

@@ -45,6 +45,8 @@ enum CaptureError: Error, Equatable, Sendable {
     case noInputDevice
     /// A capture stream is not in the interleaved Float32 format the IOProc expects.
     case unsupportedFormat
+    /// A new input device cannot run at the sample rate the recording started with.
+    case sampleRateMismatch
     /// A Core Audio call failed; `operation` names it for diagnostics.
     case coreAudio(operation: String, status: OSStatus)
 }
