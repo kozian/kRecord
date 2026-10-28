@@ -8,7 +8,6 @@
 # the previous release, builds and verifies the signed Release app, commits "Release <version>",
 # tags v<version>, and writes build/dist/kRecord-<version>.zip with its SHA-256.
 # --dry-run stops before the commit, restores the files, and writes kRecord-<version>-dryrun.zip.
-# RELEASE_COMMIT_TRAILER, when set, is appended to the release commit message.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -114,9 +113,7 @@ fi
 
 # 5. Commit and tag.
 git add "$XCCONFIG" "$CHANGELOG"
-MESSAGE="Release $VERSION"
-[[ -n "${RELEASE_COMMIT_TRAILER:-}" ]] && MESSAGE="$MESSAGE"$'\n\n'"$RELEASE_COMMIT_TRAILER"
-git commit -q -m "$MESSAGE"
+git commit -q -m "Release $VERSION"
 COMMITTED=1
 [[ "$(git rev-list --count HEAD)" == "$BUILD_NUMBER" ]] || fail "release commit is #$(git rev-list --count HEAD), expected #$BUILD_NUMBER"
 git tag -a "$TAG" -m "kRecord $VERSION ($BUILD_NUMBER)"$'\n\n'"$SECTION"

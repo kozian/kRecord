@@ -25,3 +25,6 @@ Package.resolved
 
 # Local test recordings
 *.caf
+
+# Local agent notes for this machine (shared rules are in AGENTS.md)
+CLAUDE.md

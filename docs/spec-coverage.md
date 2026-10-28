@@ -1,6 +1,6 @@
 # Spec coverage
 
-Every scenario of the `add-core-recording` specs and where it is checked: an automated test (Swift Testing, in `kRecordTests/`), a harness run on real hardware (the DEBUG recording and remote-control harnesses described in `CLAUDE.md`), or an item of [manual-qa-checklist.md](manual-qa-checklist.md) (section in brackets). Scenarios that need a person or hardware (sound, permission prompts, menus, drives) are in the checklist.
+Every scenario of the `add-core-recording` specs and where it is checked: an automated test (Swift Testing, in `kRecordTests/`), a harness run on real hardware (the DEBUG recording and remote-control harnesses described in `AGENTS.md`), or an item of [manual-qa-checklist.md](manual-qa-checklist.md) (section in brackets). Scenarios that need a person or hardware (sound, permission prompts, menus, drives) are in the checklist.
 
 ## audio-capture
 

@@ -1,4 +1,4 @@
-// Audio device helper for hardware checks (see CLAUDE.md, "Verifying audio on real hardware").
+// Audio device helper for hardware checks (see AGENTS.md, "Verifying audio on real hardware").
 //
 //     swiftc -O scripts/hw/audioctl.swift -o build/audioctl
 //     build/audioctl                        # input devices, * = default input
