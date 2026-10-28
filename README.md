@@ -2,7 +2,7 @@
 
 A minimal native macOS recorder for meetings: it records your microphone and all system audio at the same time and saves them to a file automatically. Built only on Apple system frameworks: no virtual audio drivers, no Screen Recording permission, nothing leaves your Mac.
 
-<img src="docs/screenshot.png" width="310" alt="kRecord main window">
+<img src="docs/screenshot.png" width="422" alt="kRecord main window">
 
 ## Requirements
 
